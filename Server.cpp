@@ -6,7 +6,7 @@ Server::Server(int port, std::string password)
     : server_fd(-1), port(port), password(password) {}
 
 Server::Server(const Server& other) 
-	: server_fd(other.server_fd), port(other.port), password(other.password), clients(other.clients), poll_fds(other.poll_fds) {}
+	: server_fd(other.server_fd), port(other.port), password(other.password), clients(other.clients), poll_fds(other.poll_fds) {} //add channels
 
 Server& Server::operator=(const Server& other)
 {
@@ -15,6 +15,7 @@ Server& Server::operator=(const Server& other)
 		server_fd = other.server_fd;
 		port = other.port;
 		password = other.password;
+		//channels = other.channels;
 		clients = other.clients;
 		poll_fds = other.poll_fds;
 	}
@@ -51,7 +52,7 @@ void Server::initializeServer()
 		return;
 	}
 	// Rendre le socket non-bloquant
-	int flags = fcntl(server_fd, F_GETFL, 0);
+	int flags = fcntl(server_fd, F_GETFL, O_NONBLOCK);
 	if (flags == -1 || fcntl(server_fd, F_SETFL, flags | O_NONBLOCK) == -1) {
 		perror("fcntl");
 		close(server_fd);
@@ -80,9 +81,7 @@ void Server::initializeServer()
 		close(server_fd);
 		return;
 	}
-
 	std::cout << "Server listening on port " << port << std::endl;
-
 	// Ajouter le socket serveur dans `poll_fds` pour surveiller les connexions entrantes
 	pollfd server_pollfd;
 	server_pollfd.fd = server_fd;
@@ -136,7 +135,7 @@ bool Server::authenticateClient(int client_fd)
 	std::string input(buffer);
 	input.erase(std::remove(input.begin(), input.end(), '\n'), input.end());
 	input.erase(std::remove(input.begin(), input.end(), '\r'), input.end());
-	if (password == buffer)
+	if (password == input)
 		return true; 
 	else 
 	{
@@ -162,7 +161,7 @@ void Server::acceptNewClient()
 	if (!authenticateClient(client_fd)) 
 		return;
 	Client new_client(client_fd);
-	new_client.setIpAdd(inet_ntoa((cliadd.sin_addr)))
+	new_client.setIpAdd(inet_ntoa((client_addr.sin_addr)));
 	// Ajouter le descripteur du client dans la liste des descripteurs
 	clients.push_back(new_client);
 	pollfd client_pollfd;
@@ -178,9 +177,9 @@ void Server::handleClientData(int index)
 
 	for (std::vector<Client>::iterator it = clients.begin(); it != clients.end(); ++it)
 	{
-		if (it.getFd() == fd) 
+		if (it->getFd() == fd) 
 		{
-			it.readMessage();
+			it->readMessage();
 			break;
 		}
 	}

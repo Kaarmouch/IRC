@@ -2,6 +2,8 @@
 #include <vector>
 #include <poll.h>
 #include <sys/types.h>
+#include <arpa/inet.h>
+#include <fcntl.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <unistd.h>
@@ -18,6 +20,7 @@ class Server
 		std::string password;
 		std::vector<Client> clients;
 		std::vector<pollfd> poll_fds;
+		//std::vector<Channel> channels; //channel.name start #
 	public:
 		Server();
 		Server(const Server&);

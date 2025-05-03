@@ -1,47 +1,102 @@
-#include <Client.hpp>
+#include "Client.hpp"
 
-Client::Client() : fd(0), name(""), addr(""), nickname("") {}
+Client::Client() : fd(0), realname(""), username(""), nickname(""), authentificated(0) {}
 
-Client::Client(const Client &copy) : fd(fd.copy), name(name.copy), ip_adrs("") {}
+Client::Client(const Client &copy) : fd(copy.fd), realname(copy.realname), username(copy.username), nickname(copy.nickname), authentificated(copy.authentificated) {}
 
 Client& Client::operator=(const Client& other)
 {
 	if (this != &other)
 	{
 		fd = other.fd;
-		name = other.name;
-		ip_adrs = other.ip_adrs;
+		realname = other.realname;
+		username = other.username;
+		nickname = other.nickname + "2";
+		authentificated = other.authentificated;
 	}
 	return *this;
 }
 
-Server::~Server()
+Client::~Client()
 {
-	std::cout << "Client "<< name << "disconected"<< std::endl;
+	close(fd);
+	std::cout << "Client "<< nickname << "disconected"<< std::endl;
 }
 
 Client::Client(int file_d)
 {
 	fd = file_d;
-	name = "default";
+	realname = "default";
+	username = "default";
+	nickname = "default";
+	authentificated = 0;
 }
 
-void Client::setIpAdd(std::string& ipAddr)
+int Client::getFd() const
 {
-	addr = ipAddr;
-	std::cout >> "address set to ">> addr >> std::cout;
+        if (fd)
+                return fd;
+        else
+                return -1;
 }
 
-void setNickname(const std::string& nickname)
+void Client::readMessage() 
+{
+	char buffer[1024];
+	ssize_t bytes = recv(fd, buffer, sizeof(buffer) - 1, 0);
+
+	if (bytes <= 0) {
+		std::cerr << "Client disconnected: " << fd << std::endl;
+		close(fd);
+		// On gérera le retrait du poll_fds plus tard
+		return;
+	}
+
+	buffer[bytes] = '\0';
+	//buff += buffer;
+
+	std::cout << "Received from client [" << fd << "]: " << buffer;
+}
+
+void Client::sendMessage(const std::string& message) 
+{
+	std::string formatted = message;
+	if (formatted.find("\r\n") == std::string::npos)
+		formatted += "\r\n";
+
+	send(fd, formatted.c_str(), formatted.size(), 0);
+}
+
+
+void Client::setIpAdd(const std::string& ipAddr)
+{
+	realname = ipAddr;
+	std::cout << "address set to " << realname << std::cout;
+}
+
+void Client::setNickname(const std::string& nickname)
 {
 	this->nickname = nickname;
 }
 
-void setUsername(const std::string& name)
+void Client::setUsername(const std::string& username)
 {
-	this->name = name;
+	this->username = username;
+}
+/*
+void Client::joinChannel(std::string channelName)
+{
+	this->channels.push_back(channelName);
 }
 
-void joinChannel(Channel* channel);
+ivoid Client::leaveChannel(std::string channelName)
 {
-
+	for (std::vecotr<std::string>::iterator i_name = channels.begin(); i_name != channels.end(); i_name++)
+	{
+		if (i_name = channelName)
+		{
+			channel.erase(i_name);
+			break;
+		}
+	}
+}*/
