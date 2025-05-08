@@ -94,8 +94,7 @@ void Server::startListening()
 {
 	while (true) 
 	{
-		// poll kblo pour 500ms 
-		int ret = poll(poll_fds.data(), poll_fds.size(), 500);
+		int ret = poll(poll_fds.data(), poll_fds.size(), -1);
 		if (ret < 0) 
 		{
 			perror("poll");
@@ -120,20 +119,20 @@ void Server::startListening()
 std::string Server::interactClient(int client_fd, const std::string& prompt)
 {
 	const size_t buffer_size = 1024;
-        char buffer[buffer_size];
+	char buffer[buffer_size];
 
-        send(client_fd, prompt.c_str(), prompt.length(), 0);
-        ssize_t bytes_read = read(client_fd, buffer, buffer_size - 1);
-        if (bytes_read <= 0)
-        {
-                perror("read");
-                close(client_fd);
-                return "0";
-        }
-        buffer[bytes_read] = '\0';
-        std::string input(buffer);
-        input.erase(std::remove(input.begin(), input.end(), '\n'), input.end());
-        input.erase(std::remove(input.begin(), input.end(), '\r'), input.end());
+	send(client_fd, prompt.c_str(), prompt.length(), 0);
+	ssize_t bytes_read = read(client_fd, buffer, buffer_size - 1);
+	if (bytes_read <= 0)
+	{
+		perror("read");
+		close(client_fd);
+		return "0";
+	}
+	buffer[bytes_read] = '\0';
+	std::string input(buffer);
+	input.erase(std::remove(input.begin(), input.end(), '\n'), input.end());
+	input.erase(std::remove(input.begin(), input.end(), '\r'), input.end());
 	if (input.empty()) 
 	{
 		std::cout << "Client sent empty line" << std::endl;
@@ -207,21 +206,67 @@ void Server::disconnectClient(int fd)
 	}
 }
 
+bool Server::isNickOk(int cli_fd, std::string& str)
+{
+
+	std::string prompt = "Bad Nickname !";
+	std::string prompti = "Already used nickname !";
+
+	if (str == "" || str.find(',') == std::string::npos || str.find('*') == std::string::npos || str.find('?') == std::string::npos 
+			|| str.find('!') == std::string::npos  || str.find('@') == std::string::npos
+		       	|| str.find('$') == std::string::npos || str.find(':') == std::string::npos || str.find('.') == std::string::npos )
+	{
+		send(cli_fd, prompt.c_str(), prompt.length(), 0);
+		return 0;
+	}
+	for (std::vector<Client>::iterator it = clients.begin(); it != clients.end(); ++it)
+        {
+                if (it->getNickn() == str)
+                {
+			send(cli_fd, prompti.c_str(), prompti.length(), 0);
+                        return 0;
+                }
+        }
+	return 1;
+}
+
+
+void Server::clientToServ(Client& cli, std::string& str)
+{
+	std::vector<std::string> words = splitOnSpace(str);
+	std::string prompt = "Nickname set to :";
+
+	if (words[0] == "/nick" && isNickOk(cli.getFd(), words[0]))
+	{
+		cli.setNickname(words[0]);
+		prompt += words[0];
+		cli.sendMessage(prompt);
+	}
+	else
+		std::cout << "need to code the rest" << std::endl;
+}
+
+
 
 void Server::handleClientData(int index) 
 {
 	int fd = poll_fds[index].fd;
-	bool flag = true;
+	std::string str = "";
 
 	for (std::vector<Client>::iterator it = clients.begin(); it != clients.end(); ++it)
 	{
 		if (it->getFd() == fd) 
 		{
-			flag = it->readMessage();
+			str = it->readMessage();
+			std::cout << "Received from client_" << fd << " : "<< str;
+			if (str[0] == '/')
+			{
+				clientToServ(*it, str);
+
+			}
 			break;
 		}
 	}
-	if (!flag)
+	if (str == "" )
 		disconnectClient(fd);
 }
-

@@ -40,21 +40,27 @@ int Client::getFd() const
                 return -1;
 }
 
-bool Client::readMessage() 
+
+std::string Client::getRealn() const {return realname;}
+std::string Client::getUsern() const {return username;}
+std::string Client::getNickn() const {return nickname;}
+
+std::string Client::readMessage() 
 {
 	char buffer[1024];
+	std::string msg;
 	ssize_t bytes = recv(fd, buffer, sizeof(buffer) - 1, 0);
 
 	if (bytes <= 0) {
 		std::cerr << "Client disconnected: " << fd << std::endl;
-		return false;
+		return "";
 	}
 
 	buffer[bytes] = '\0';
 	//buff += buffer;
-
-	std::cout << "Received from client [" << fd << "]: " << buffer;
-	return true;
+	msg = buffer;
+	
+	return msg;
 }
 
 void Client::sendMessage(const std::string& message) 

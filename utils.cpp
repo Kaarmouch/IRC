@@ -1,5 +1,16 @@
-// utils.cpp
 #include "utils.hpp"
+
+std::vector<std::string> splitOnSpace(const std::string& input) {
+    std::vector<std::string> tokens;
+    std::istringstream stream(input);
+    std::string word;
+
+    while (stream >> word) {
+        tokens.push_back(word);
+    }
+
+    return tokens;
+}
 
 int	IsValidPort(const char *portStr)
 {

@@ -1,4 +1,5 @@
 #pragma once
+#include "utils.hpp"
 #include <vector>
 #include <poll.h>
 #include <sys/types.h>
@@ -23,18 +24,23 @@ class Server
 		//std::vector<Channel> channels; //channel.name start #
 	public:
 		Server();
+		Server(int port, std::string password);
 		Server(const Server&);
 		Server& operator=(const Server&);
 		~Server();
 
-		Server(int port, std::string password);
 		std::string interactClient(int fd, const std::string&);
 		bool authenticateClient(int client_fd);
+		void disconnectClient(int fd);
+		void handleClientData(int index);
+		void clientToServ(Client& client, std::string& str);
+
 		void startListening();
 		void initializeServer();
 		void acceptNewClient();
-		void disconnectClient(int fd);
-		void handleClientData(int index);
+		
+		bool isNickOk(int fd, std::string& nick);
+
 };
 
 
