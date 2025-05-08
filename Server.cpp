@@ -117,26 +117,36 @@ void Server::startListening()
 	}
 }
 
+std::string Server::interactClient(int client_fd, const std::string& prompt)
+{
+	const size_t buffer_size = 1024;
+        char buffer[buffer_size];
+
+        send(client_fd, prompt.c_str(), prompt.length(), 0);
+        ssize_t bytes_read = read(client_fd, buffer, buffer_size - 1);
+        if (bytes_read <= 0)
+        {
+                perror("read");
+                close(client_fd);
+                return "0";
+        }
+        buffer[bytes_read] = '\0';
+        std::string input(buffer);
+        input.erase(std::remove(input.begin(), input.end(), '\n'), input.end());
+        input.erase(std::remove(input.begin(), input.end(), '\r'), input.end());
+	if (input.empty()) 
+	{
+		std::cout << "Client sent empty line" << std::endl;
+		return "0";  // Pas une déconnexion
+	}
+	return input;
+}
+
 bool Server::authenticateClient(int client_fd) 
 {
-	const std::string prompt = "Please enter the password: ";
-	const size_t buffer_size = 1024;
-	char buffer[buffer_size];
-
-	send(client_fd, prompt.c_str(), prompt.length(), 0);
-	ssize_t bytes_read = read(client_fd, buffer, buffer_size - 1);
-	if (bytes_read <= 0) 
-	{
-		perror("read");
-		close(client_fd);
-		return false;
-	}
-	buffer[bytes_read] = '\0';
-	std::string input(buffer);
-	input.erase(std::remove(input.begin(), input.end(), '\n'), input.end());
-	input.erase(std::remove(input.begin(), input.end(), '\r'), input.end());
+	std::string input = interactClient(client_fd, "Please enter the password: ");
 	if (password == input)
-		return true; 
+		return true;
 	else 
 	{
 		std::cout << "Incorrect password provided." << std::endl;
@@ -145,6 +155,7 @@ bool Server::authenticateClient(int client_fd)
 		return false;
 	}
 }
+
 
 void Server::acceptNewClient() 
 {
@@ -171,16 +182,46 @@ void Server::acceptNewClient()
 	poll_fds.push_back(client_pollfd);
 }
 
+void Server::disconnectClient(int fd)
+{
+	std::cout << "Disconnecting client FD: " << fd << std::endl;
+	close(fd);
+
+	// Supprimer le client du vecteur clients
+	for (std::vector<Client>::iterator it = clients.begin(); it != clients.end(); ++it)
+	{
+		if (it->getFd() == fd)
+		{
+			clients.erase(it);
+			break;
+		}
+	}
+	// Supprimer du poll_fds
+	for (std::vector<pollfd>::iterator it = poll_fds.begin(); it != poll_fds.end(); ++it)
+	{
+		if (it->fd == fd)
+		{
+			poll_fds.erase(it);
+			break;
+		}
+	}
+}
+
+
 void Server::handleClientData(int index) 
 {
 	int fd = poll_fds[index].fd;
+	bool flag = true;
 
 	for (std::vector<Client>::iterator it = clients.begin(); it != clients.end(); ++it)
 	{
 		if (it->getFd() == fd) 
 		{
-			it->readMessage();
+			flag = it->readMessage();
 			break;
 		}
 	}
+	if (!flag)
+		disconnectClient(fd);
 }
+

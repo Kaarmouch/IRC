@@ -8,6 +8,7 @@ Client& Client::operator=(const Client& other)
 {
 	if (this != &other)
 	{
+		std::cout << fd << " Client a ete copié" << std::endl;
 		fd = other.fd;
 		realname = other.realname;
 		username = other.username;
@@ -19,8 +20,7 @@ Client& Client::operator=(const Client& other)
 
 Client::~Client()
 {
-	close(fd);
-	std::cout << "Client "<< nickname << "disconected"<< std::endl;
+	std::cout << fd << " Client a ete supp" << std::endl;
 }
 
 Client::Client(int file_d)
@@ -40,22 +40,21 @@ int Client::getFd() const
                 return -1;
 }
 
-void Client::readMessage() 
+bool Client::readMessage() 
 {
 	char buffer[1024];
 	ssize_t bytes = recv(fd, buffer, sizeof(buffer) - 1, 0);
 
 	if (bytes <= 0) {
 		std::cerr << "Client disconnected: " << fd << std::endl;
-		close(fd);
-		// On gérera le retrait du poll_fds plus tard
-		return;
+		return false;
 	}
 
 	buffer[bytes] = '\0';
 	//buff += buffer;
 
 	std::cout << "Received from client [" << fd << "]: " << buffer;
+	return true;
 }
 
 void Client::sendMessage(const std::string& message) 
@@ -71,7 +70,7 @@ void Client::sendMessage(const std::string& message)
 void Client::setIpAdd(const std::string& ipAddr)
 {
 	realname = ipAddr;
-	std::cout << "address set to " << realname << std::cout;
+	std::cout << "address set to " << realname << std::endl;
 }
 
 void Client::setNickname(const std::string& nickname)

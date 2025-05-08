@@ -28,10 +28,12 @@ class Server
 		~Server();
 
 		Server(int port, std::string password);
+		std::string interactClient(int fd, const std::string&);
 		bool authenticateClient(int client_fd);
 		void startListening();
 		void initializeServer();
 		void acceptNewClient();
+		void disconnectClient(int fd);
 		void handleClientData(int index);
 };
 

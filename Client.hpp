@@ -19,7 +19,7 @@ class Client {
 		Client& operator=(const Client&);
 		Client(int client_fd);
 		int getFd() const;  // Accesseur pour obtenir le descripteur de fichier
-		void readMessage();     // Lire le message envoyé par le client
+		bool readMessage();     // Lire le message envoyé par le client
 		void sendMessage(const std::string& message);  // Envoyer un message au client
 		void setIpAdd(const std::string& addr);
 		void setNickname(const std::string& nickname);
