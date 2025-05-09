@@ -155,7 +155,6 @@ bool Server::authenticateClient(int client_fd)
 	}
 }
 
-
 void Server::acceptNewClient() 
 {
 	struct sockaddr_in client_addr;
@@ -206,46 +205,83 @@ void Server::disconnectClient(int fd)
 	}
 }
 
-bool Server::isNickOk(int cli_fd, std::string& str)
+bool Server::isNickOk(Client& cli, std::string& str)
 {
-
 	std::string prompt = "Bad Nickname !";
 	std::string prompti = "Already used nickname !";
-
-	if (str == "" || str.find(',') == std::string::npos || str.find('*') == std::string::npos || str.find('?') == std::string::npos 
-			|| str.find('!') == std::string::npos  || str.find('@') == std::string::npos
-		       	|| str.find('$') == std::string::npos || str.find(':') == std::string::npos || str.find('.') == std::string::npos )
+	
+	if (str.empty() ||str == "" || str.find(",") != std::string::npos || str.find("*") != std::string::npos || str.find("?") != std::string::npos 
+			|| str.find("!") != std::string::npos || str.find("@") != std::string::npos || str.find(".") != std::string::npos 
+			|| str.find("#") != std::string::npos || str.find("/") != std::string::npos
+		       	|| str.find("$") != std::string::npos || str.find(":") != std::string::npos)
 	{
-		send(cli_fd, prompt.c_str(), prompt.length(), 0);
+		cli.sendMessage(prompt);
 		return 0;
 	}
 	for (std::vector<Client>::iterator it = clients.begin(); it != clients.end(); ++it)
         {
                 if (it->getNickn() == str)
                 {
-			send(cli_fd, prompti.c_str(), prompti.length(), 0);
+			cli.sendMessage(prompti);
                         return 0;
                 }
         }
 	return 1;
 }
-
+void Server::sendHelp(Client& cli)
+{
+	std::string prompt = "Commandes disponibles :\n"
+		"/nick <nickname>        - Définir un pseudo 1\n"
+		"/user <username>        - Définir un nom d’utilisateur 1\n"
+		"/join <#channel>        - Rejoindre un canal\n"
+		"/part <#channel>        - Quitter un canal\n"
+		"/quite			 - Quitte le server irc 1\n"
+		"/msg <user/#channel> <message> - Envoyer un message\n"
+		"/kick <#channel> <user> - Expulser un utilisateur\n"
+		"/invite <user> <#channel> - Inviter un utilisateur\n" 
+		"/topic <#channel> [sujet] - Voir ou changer le sujet\n"
+		"/mode <#channel> <mode> [param] - Changer les options du canal\n"
+		"\n"
+		"Modes de channel :\n"
+		"+i : sur invitation  |  +t : sujet réservé aux opérateurs\n"
+		"+k : mot de passe    |  +o : donner/retirer opérateur\n"
+		"+l : limite d’utilisateurs\n";
+	cli.sendMessage(prompt);
+}
 
 void Server::clientToServ(Client& cli, std::string& str)
 {
 	std::vector<std::string> words = splitOnSpace(str);
-	std::string prompt = "Nickname set to :";
 
-	if (words[0] == "/nick" && isNickOk(cli.getFd(), words[0]))
-	{
-		cli.setNickname(words[0]);
-		prompt += words[0];
-		cli.sendMessage(prompt);
+	if (words.empty())
+		return;
+	if (words[0] == "/nick") {
+		if (words.size() < 2 || words[1].empty()) {
+			cli.sendMessage("Usage: /nick <nickname>");
+			return;
+		}
+		if (isNickOk(cli, words[1])) {
+			cli.setNickname(words[1]);
+			cli.sendMessage("Nickname set to : " + words[1]);
+		}
 	}
+	else if (words[0] == "/user")
+	{
+		if (words[1].empty())
+		{
+			cli.sendMessage("Usage: /user <username>");
+			return;
+		}
+		cli.setUsername(words[1]);
+		cli.sendMessage("Username set to : " + words[1]);
+	}
+	else if (words[0] == "/help") 
+		sendHelp(cli);
+	else if (words[0] == "/quite")
+		disconnectClient(cli.getFd());
 	else
-		std::cout << "need to code the rest" << std::endl;
+		cli.sendMessage("Commande inconnue ou non implémentée.");
 }
-
 
 
 void Server::handleClientData(int index) 
@@ -258,12 +294,9 @@ void Server::handleClientData(int index)
 		if (it->getFd() == fd) 
 		{
 			str = it->readMessage();
-			std::cout << "Received from client_" << fd << " : "<< str;
+			std::cout << "Received from "<< it->getNickn() << " : "<< str;
 			if (str[0] == '/')
-			{
 				clientToServ(*it, str);
-
-			}
 			break;
 		}
 	}

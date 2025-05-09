@@ -34,12 +34,14 @@ class Server
 		void disconnectClient(int fd);
 		void handleClientData(int index);
 		void clientToServ(Client& client, std::string& str);
+		void sendHelp(Client& cli);
+
 
 		void startListening();
 		void initializeServer();
 		void acceptNewClient();
 		
-		bool isNickOk(int fd, std::string& nick);
+		bool isNickOk(Client& cli, std::string& nick);
 
 };
 

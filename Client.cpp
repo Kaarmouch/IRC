@@ -8,7 +8,7 @@ Client& Client::operator=(const Client& other)
 {
 	if (this != &other)
 	{
-		std::cout << fd << " Client a ete copié" << std::endl;
+		std::cout << nickname << " a ete copié" << std::endl;
 		fd = other.fd;
 		realname = other.realname;
 		username = other.username;
@@ -20,15 +20,18 @@ Client& Client::operator=(const Client& other)
 
 Client::~Client()
 {
-	std::cout << fd << " Client a ete supp" << std::endl;
+	std::cout << nickname << " a ete supp" << std::endl;
 }
 
 Client::Client(int file_d)
 {
 	fd = file_d;
-	realname = "default";
-	username = "default";
-	nickname = "default";
+
+	std::ostringstream oss;
+	oss << "client_" << fd;
+	nickname = oss.str();
+	realname = "client";
+	username = "client";
 	authentificated = 0;
 }
 
