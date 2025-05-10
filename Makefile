@@ -1,27 +1,48 @@
 NAME = ircserv
 
-CXX = c++
+CC		= c++
+FLAGS	= -Wall -Wextra -Werror -std=c++98
+RM		= rm -rf
 
-CXXFLAGS = -Wall -Wextra -Werror -std=c++98
+OBJDIR	= .objFiles
 
-SRCS = main.cpp Server.cpp Client.cpp utils.cpp
+FILES	= main Server Client Channel utils
 
-OBJS = $(SRCS:.cpp=.o)
+SRC		= $(FILES:=.cpp)
+OBJ		= $(addprefix $(OBJDIR)/, $(FILES:=.o))
+HEADER	= Channel.hpp Client.hpp Server.hpp utils.hpp
+
+GREEN	= \e[92m
+YELLOW	= \e[93m
+GRAY	= \e[33md
+RESET	= \e[0m
+CURSIVE	= \e[3m
+
+.PHONY: all clean fclean re
 
 all: $(NAME)
 
-$(NAME): $(OBJS)
-	$(CXX) $(CXXFLAGS) -o $(NAME) $(OBJS)
+$(NAME): $(OBJ) $(HEADER)
+	@$(CC) $(OBJ) -o $(NAME)
+	@printf "______________________________________\n\n$(RESET)"
+	@printf "$(GREEN)-> IRC SERVER\n$(RESET)"
+	@printf "$(GREEN)-> Projet : ft_irc\n$(RESET)"
+	@printf "______________________________________\n\n$(RESET)"
+	@printf "$(YELLOW)-> Compilation de ircserv...$(RESET)\n"
+	@printf "$(GREEN)-> Exécutable prêt !$(RESET)\n\n"
+	@printf "$(GREEN)./$(NAME) <port> <password>\n\n$(RESET)"
+	@printf "______________________________________\n\n$(RESET)"	
 
-%.o: %.cpp
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+$(OBJDIR)/%.o: %.cpp $(HEADER)
+	@mkdir -p $(dir $@)
+	@$(CC) $(FLAGS) -c $< -o $@
 
 clean:
-	rm -f $(OBJS)
+	@$(RM) $(OBJDIR)
+	@printf "$(YELLOW)-> Fichiers objets supprimés.$(RESET)\n"
 
 fclean: clean
-	rm -f $(NAME)
+	@$(RM) $(NAME)
+	@printf "$(YELLOW)-> Exécutable supprimé.$(RESET)\n"
 
 re: fclean all
-
-.PHONY: all clean fclean re

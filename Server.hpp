@@ -1,5 +1,7 @@
 #pragma once
 #include "utils.hpp"
+#include "Channel.hpp"
+
 #include <vector>
 #include <poll.h>
 #include <sys/types.h>
@@ -21,7 +23,9 @@ class Server
 		std::string password;
 		std::vector<Client> clients;
 		std::vector<pollfd> poll_fds;
-		//std::vector<Channel> channels; //channel.name start #
+
+		std::map<std::string, Channel> channels;
+
 	public:
 		Server();
 		Server(int port, std::string password);
@@ -40,6 +44,10 @@ class Server
 		void startListening();
 		void initializeServer();
 		void acceptNewClient();
+
+		//Command
+		void Join_Command(Client& client, const std::string& channelName);
+
 		
 		bool isNickOk(Client& cli, std::string& nick);
 
