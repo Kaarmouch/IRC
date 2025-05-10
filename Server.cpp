@@ -277,6 +277,13 @@ void Server::clientToServ(Client& cli, std::string& str)
 	}
 	else if (words[0] == "/help") 
 		sendHelp(cli);
+
+	else if (words[0] == "/join")
+	{
+		std::string channelName = words[1];
+		Join_Command(cli, channelName);
+	}
+
 	else if (words[0] == "/quite")
 		disconnectClient(cli.getFd());
 	else
@@ -302,4 +309,39 @@ void Server::handleClientData(int index)
 	}
 	if (str == "" )
 		disconnectClient(fd);
+}
+////////////////////////////////////////
+//									  //
+//       		COMMAND			      //
+//									  //
+////////////////////////////////////////
+
+void Server::Join_Command(Client& client, const std::string& channelName) 
+{
+    std::map<std::string, Channel>::iterator it = channels.find(channelName);
+
+    if (it == channels.end()) 
+	{
+        // Le canal n'existe pas → on le crée
+        Channel newChannel(channelName);
+        newChannel.addMember(client.getNickn(), true); // opérateur
+        channels[channelName] = newChannel;
+
+        client.sendMessage("You created and joined #" + channelName);
+        std::cout << client.getNickn() << " created and joined channel #" << channelName << std::endl;
+    } 
+    else 
+	{
+        // Canal existe → tentative de join
+        Channel& existing_channel = it->second;
+
+        if (existing_channel.addMember(client.getNickn())) 
+		{
+            client.sendMessage("You joined #" + channelName);
+            std::cout << client.getNickn() << " joined channel #" << channelName << std::endl;
+        } else 
+		{
+            client.sendMessage("Unable to join #" + channelName);
+        }
+    }
 }
