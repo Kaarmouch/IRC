@@ -1,8 +1,8 @@
 #include "Client.hpp"
 
-Client::Client() : fd(0), realname(""), username(""), nickname(""), authentificated(0) {}
+Client::Client() : fd(0), realname(""), username(""), nickname(""), authentificated(0), chanOn("No Channel") {}
 
-Client::Client(const Client &copy) : fd(copy.fd), realname(copy.realname), username(copy.username), nickname(copy.nickname), authentificated(copy.authentificated) {}
+Client::Client(const Client &copy) : fd(copy.fd), realname(copy.realname), username(copy.username), nickname(copy.nickname), authentificated(copy.authentificated), chanOn(copy.chanOn) {}
 
 Client& Client::operator=(const Client& other)
 {
@@ -13,6 +13,7 @@ Client& Client::operator=(const Client& other)
 		realname = other.realname;
 		username = other.username;
 		nickname = other.nickname + "2";
+		chanOn = other.chanOn;
 		authentificated = other.authentificated;
 	}
 	return *this;
@@ -33,6 +34,7 @@ Client::Client(int file_d)
 	realname = "client";
 	username = "client";
 	authentificated = 0;
+	chanOn = "No channel";
 }
 
 int Client::getFd() const
@@ -47,6 +49,9 @@ int Client::getFd() const
 std::string Client::getRealn() const {return realname;}
 std::string Client::getUsern() const {return username;}
 std::string Client::getNickn() const {return nickname;}
+std::string Client::getChanOn() const {return chanOn;}
+bool Client::getPass() const {return authentificated;}
+
 
 std::string Client::readMessage() 
 {
@@ -81,6 +86,17 @@ void Client::setIpAdd(const std::string& ipAddr)
 	realname = ipAddr;
 	std::cout << "address set to " << realname << std::endl;
 }
+
+void Client::setPass(void)
+{
+	authentificated = 1;
+}
+
+void Client::setChanOn(const std::string& chanOn)
+{
+        this->chanOn = chanOn;
+}
+
 
 void Client::setNickname(const std::string& nickname)
 {

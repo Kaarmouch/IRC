@@ -4,7 +4,7 @@ CC		= c++
 FLAGS	= -Wall -Wextra -Werror -std=c++98
 RM		= rm -rf
 
-OBJDIR	= .objFiles
+OBJDIR	= objFiles
 
 FILES	= main Server Client Channel utils
 

@@ -33,8 +33,7 @@ class Server
 		Server& operator=(const Server&);
 		~Server();
 
-		std::string interactClient(int fd, const std::string&);
-		bool authenticateClient(int client_fd);
+		void sendPrompt(Client& clicli);
 		void disconnectClient(int fd);
 		void handleClientData(int index);
 		void clientToServ(Client& client, std::string& str);

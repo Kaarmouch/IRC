@@ -90,10 +90,17 @@ void Server::initializeServer()
 	poll_fds.push_back(server_pollfd);
 }
 
+void Server::sendPrompt(Client& clicli)
+{
+	std::string p = clicli.getNickn() + "\t" + "IRC " + "[" + clicli.getChanOn() + "]";
+	clicli.sendMessage(p);
+}
+	
 void Server::startListening() 
 {
 	while (true) 
 	{
+
 		int ret = poll(poll_fds.data(), poll_fds.size(), -1);
 		if (ret < 0) 
 		{
@@ -116,44 +123,6 @@ void Server::startListening()
 	}
 }
 
-std::string Server::interactClient(int client_fd, const std::string& prompt)
-{
-	const size_t buffer_size = 1024;
-	char buffer[buffer_size];
-
-	send(client_fd, prompt.c_str(), prompt.length(), 0);
-	ssize_t bytes_read = read(client_fd, buffer, buffer_size - 1);
-	if (bytes_read <= 0)
-	{
-		perror("read");
-		close(client_fd);
-		return "0";
-	}
-	buffer[bytes_read] = '\0';
-	std::string input(buffer);
-	input.erase(std::remove(input.begin(), input.end(), '\n'), input.end());
-	input.erase(std::remove(input.begin(), input.end(), '\r'), input.end());
-	if (input.empty()) 
-	{
-		std::cout << "Client sent empty line" << std::endl;
-		return "0";  // Pas une déconnexion
-	}
-	return input;
-}
-
-bool Server::authenticateClient(int client_fd) 
-{
-	std::string input = interactClient(client_fd, "Please enter the password: ");
-	if (password == input)
-		return true;
-	else 
-	{
-		std::cout << "Incorrect password provided." << std::endl;
-		send(client_fd, "Incorrect password. Connection closed.\n", 39, 0);
-		close(client_fd);
-		return false;
-	}
-}
 
 void Server::acceptNewClient() 
 {
@@ -167,11 +136,10 @@ void Server::acceptNewClient()
 		return;
 	}
 	std::cout << "New client connected: FD " << client_fd << std::endl;
-	if (!authenticateClient(client_fd)) 
-		return;
 	Client new_client(client_fd);
 	new_client.setIpAdd(inet_ntoa((client_addr.sin_addr)));
 	// Ajouter le descripteur du client dans la liste des descripteurs
+	sendPrompt(new_client);
 	clients.push_back(new_client);
 	pollfd client_pollfd;
 	client_pollfd.fd = client_fd;
@@ -267,7 +235,7 @@ void Server::clientToServ(Client& cli, std::string& str)
 	}
 	else if (words[0] == "/user")
 	{
-		if (words[1].empty())
+		if (words.size() < 2 || words[1].empty())
 		{
 			cli.sendMessage("Usage: /user <username>");
 			return;
@@ -301,20 +269,25 @@ void Server::handleClientData(int index)
 		if (it->getFd() == fd) 
 		{
 			str = it->readMessage();
-			std::cout << "Received from "<< it->getNickn() << " : "<< str;
+			std::cout << "Received from "<< it->getNickn() << " " <<it->getPass() << " : "<< str;
+			if (!(it->getPass()))
+			{
+				if (trimCRLF(str) == password)
+				{
+					it->sendMessage("You are now authentificated");
+					it->setPass();
+				}
+				break;
+			}
 			if (str[0] == '/')
-				clientToServ(*it, str);
+				clientToServ(&it, str);
+			sendPrompt(*it);
 			break;
 		}
 	}
 	if (str == "" )
 		disconnectClient(fd);
 }
-////////////////////////////////////////
-//									  //
-//       		COMMAND			      //
-//									  //
-////////////////////////////////////////
 
 void Server::Join_Command(Client& client, const std::string& channelName) 
 {

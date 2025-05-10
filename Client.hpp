@@ -11,6 +11,7 @@ class Client {
 		int fd; 
 		std::string realname, username, nickname; // nickname -> unique
 		bool authentificated;
+		std::string chanOn;
 		std::vector<std::string> channels;
 
 
@@ -19,13 +20,20 @@ class Client {
 		Client(const Client&);
 		Client& operator=(const Client&);
 		Client(int client_fd);
+
 		int getFd() const;  // Accesseur pour obtenir le descripteur de fichier
 		std::string getRealn() const;  // Accesseur pour obtenir le descripteur de fichier
 		std::string getUsern() const;  // Accesseur pour obtenir le descripteur de fichier
 		std::string getNickn() const;  // Accesseur pour obtenir le descripteur de fichier
+		bool getPass() const;
+		std::string getChanOn() const;
+		
 		std::string readMessage();     // Lire le message envoyé par le client
 		void sendMessage(const std::string& message);  // Envoyer un message au client
+		
 		void setIpAdd(const std::string& addr);
+		void setChanOn(const std::string& chanOn);
+		void setPass(void);
 		void setNickname(const std::string& nickname);
 		void setUsername(const std::string& name);
 		/*void joinChannel(std::string channelName);

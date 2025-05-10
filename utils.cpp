@@ -12,6 +12,15 @@ std::vector<std::string> splitOnSpace(const std::string& input) {
     return tokens;
 }
 
+
+std::string trimCRLF(const std::string& s) {
+    std::string out = s;
+    while (!out.empty() && (out[out.size() - 1] == '\n' || out[out.size() - 1] == '\r')) {
+        out.erase(out.size() - 1, 1);
+    }
+    return out;
+}
+
 int	IsValidPort(const char *portStr)
 {
 	std::string	str(portStr);
