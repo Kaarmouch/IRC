@@ -260,6 +260,25 @@ void Server::clientToServ(Client& cli, std::string& str)
 		cli.sendMessage("Commande inconnue ou non implémentée.");
 }
 
+/*void Server::handleMessage(Client& cli, std::string& msg)
+{	
+	std::string chanOn = cli.getChanOn;
+
+	if (chanOn = "No channel")
+		cli.sendMessage("You have no chanel, please /join #channel");
+	else
+	{
+		std::map<std::string, Channel>::iterator it = channels.find(chanOn);
+		if (it == channels.end())
+		{
+			cli.sendMessage("Your channel is busted wtf ?");
+			return cli.setChanOn("No channel");
+		}
+		it.sendAll(cli&msg);
+
+
+
+*/
 
 void Server::handleClientData(int index) 
 {
@@ -284,7 +303,7 @@ void Server::handleClientData(int index)
 				sendPrompt(*it);
 				break;
 			}
-			if (str[0] == '/')
+			else if (str[0] == '/')
 				clientToServ(*it, str);
 			sendPrompt(*it);
 			break;

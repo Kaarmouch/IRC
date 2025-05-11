@@ -68,6 +68,10 @@ bool Channel::isMember(const std::string& user) const
     return members.find(user) != members.end();
 }
 
+/*void	Channel::sendAll(int fd, std::string msg)
+{
+	for (std::map)
+}*/
 //-> Permissions -------------------------------------------------------------------------------------------------------------------------------
 bool Channel::promoteToOperator(const std::string& user)
 {

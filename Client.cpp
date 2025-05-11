@@ -1,6 +1,6 @@
 #include "Client.hpp"
 
-Client::Client() : fd(0), realname(""), username(""), nickname(""), authentificated(0), chanOn("No Channel") {}
+Client::Client() : fd(0), realname(""), username(""), nickname(""), authentificated(0), chanOn("No channel") {}
 
 Client::Client(const Client &copy) : fd(copy.fd), realname(copy.realname), username(copy.username), nickname(copy.nickname), authentificated(copy.authentificated), chanOn(copy.chanOn) {}
 

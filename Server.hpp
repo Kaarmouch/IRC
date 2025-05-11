@@ -36,6 +36,7 @@ class Server
 		void sendPrompt(Client& clicli);
 		void disconnectClient(int fd);
 		void handleClientData(int index);
+		void handleMessage(Client& client, std::string& str);
 		void clientToServ(Client& client, std::string& str);
 		void sendHelp(Client& cli);
 
@@ -46,8 +47,6 @@ class Server
 
 		//Command
 		void Join_Command(Client& client, const std::string& channelName);
-
-		
 		bool isNickOk(Client& cli, std::string& nick);
 
 };
