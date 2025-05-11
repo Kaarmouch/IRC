@@ -94,6 +94,8 @@ void Server::sendPrompt(Client& clicli)
 {
 	std::string p = clicli.getNickn() + "\t" + "IRC " + "[" + clicli.getChanOn() + "]";
 	clicli.sendMessage(p);
+	if (!clicli.getPass())
+		clicli.sendMessage("Password :");
 }
 	
 void Server::startListening() 
@@ -277,10 +279,13 @@ void Server::handleClientData(int index)
 					it->sendMessage("You are now authentificated");
 					it->setPass();
 				}
+				else
+					it->sendMessage("Wrong password");
+				sendPrompt(*it);
 				break;
 			}
 			if (str[0] == '/')
-				clientToServ(&it, str);
+				clientToServ(*it, str);
 			sendPrompt(*it);
 			break;
 		}
