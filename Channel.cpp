@@ -65,8 +65,8 @@ bool Channel::addMember(Client* client, bool isOp)
     if (members.find(client) != members.end())
         return false;
 
-    //members.insert(std::make_pair(client, isOp));
-    members[client] = isOp;
+    members.insert(std::make_pair(client, isOp));
+    //members[client] = isOp;
     return true;
 }
 
