@@ -7,13 +7,14 @@
 #include <vector>
 #include <map>
 #include <set>
+#include "Client.hpp"
 
 class Channel 
 {
 private:
     std::string name;                               // Nom du canal
     std::string topic;                              // Sujet du canal
-    std::map<std::string, bool> members;            // Liste des membres (nom, est-opérateur ?)
+    std::map<Client*, bool> members;                // Liste des membres (nom, est-opérateur ?)
     bool inviteOnly;                                // Mode "sur invitation uniquement"
     std::string password;                           // Mot de passe du canal (optionnel)
     
@@ -31,26 +32,26 @@ public:
     std::string getName() const;                                                     
     std::string getTopic() const;
     void setTopic(const std::string& newTopic);
+    int getOperatorCount() const;
 
-    // Membres
-    bool addMember(const std::string& user, bool isOperator = false);
-    bool removeMember(const std::string& user);
-    bool isMember(const std::string& user) const;
+    // Membres (update for Client*)
+    bool addMember(Client* client, bool isOperator = false);
+    bool removeMember(Client* client);                                 // retire un membre
+    bool isEmpty() const;                                                       // return true si plus de membre dans un channel
+    bool isMember(Client* client) const;                               // Savoir si il est deja dans un channel
 
     // Permissions
-    bool promoteToOperator(const std::string& user);
-    bool demoteOperator(const std::string& user);
+    bool promoteToOperator(Client* user);
+    bool demoteOperator(Client*  user);
 
     // Modes
     void setInviteOnly(bool isInviteOnly);
     void setPassword(const std::string& newPassword);
     bool checkPassword(const std::string& inputPassword) const;
 
-    // Bannissement
-    void KickUser(const std::string& user);
-
-
     int getMemberCount() const;
+    std::map<Client*, bool> getMembers();
+    
 };
 
 #endif

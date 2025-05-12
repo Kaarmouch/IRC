@@ -47,6 +47,7 @@ class Server
 
 		//Command
 		void Join_Command(Client* client, const std::string& channelName);
+		void Part_Command(Client* client, const std::string& channelName);
 		bool isNickOk(Client* cli, std::string& nick);
 
 };
