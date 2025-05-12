@@ -90,12 +90,12 @@ void Server::initializeServer()
 	poll_fds.push_back(server_pollfd);
 }
 
-void Server::sendPrompt(Client& clicli)
+void Server::sendPrompt(Client* clicli)
 {
-	std::string p = clicli.getNickn() + "\t" + "IRC " + "[" + clicli.getChanOn() + "]";
-	clicli.sendMessage(p);
-	if (!clicli.getPass())
-		clicli.sendMessage("Password :");
+	std::string p = clicli->getNickn() + "\t" + "IRC " + "[" + clicli->getChanOn() + "]";
+	clicli->sendMessage(p);
+	if (!clicli->getPass())
+		clicli->sendMessage("Password :");
 }
 	
 void Server::startListening() 
@@ -141,7 +141,7 @@ void Server::acceptNewClient()
 	Client new_client(client_fd);
 	new_client.setIpAdd(inet_ntoa((client_addr.sin_addr)));
 	// Ajouter le descripteur du client dans la liste des descripteurs
-	sendPrompt(new_client);
+	sendPrompt(&new_client);
 	clients.push_back(new_client);
 	pollfd client_pollfd;
 	client_pollfd.fd = client_fd;
@@ -175,7 +175,7 @@ void Server::disconnectClient(int fd)
 	}
 }
 
-bool Server::isNickOk(Client& cli, std::string& str)
+bool Server::isNickOk(Client* cli, std::string& str)
 {
 	std::string prompt = "Bad Nickname !";
 	std::string prompti = "Already used nickname !";
@@ -185,20 +185,20 @@ bool Server::isNickOk(Client& cli, std::string& str)
 			|| str.find("#") != std::string::npos || str.find("/") != std::string::npos
 		       	|| str.find("$") != std::string::npos || str.find(":") != std::string::npos)
 	{
-		cli.sendMessage(prompt);
+		cli->sendMessage(prompt);
 		return 0;
 	}
 	for (std::vector<Client>::iterator it = clients.begin(); it != clients.end(); ++it)
         {
                 if (it->getNickn() == str)
                 {
-			cli.sendMessage(prompti);
+			cli->sendMessage(prompti);
                         return 0;
                 }
         }
 	return 1;
 }
-void Server::sendHelp(Client& cli)
+void Server::sendHelp(Client* cli)
 {
 	std::string prompt = "Commandes disponibles :\n"
 		"/nick <nickname>        - Définir un pseudo 1\n"
@@ -216,48 +216,48 @@ void Server::sendHelp(Client& cli)
 		"+i : sur invitation  |  +t : sujet réservé aux opérateurs\n"
 		"+k : mot de passe    |  +o : donner/retirer opérateur\n"
 		"+l : limite d’utilisateurs\n";
-	cli.sendMessage(prompt);
+	cli->sendMessage(prompt);
 }
 
-void Server::clientToServ(Client& cli, std::string& str)
+void Server::clientToServ(Client* cli, std::string& str)
 {
 	std::vector<std::string> words = splitOnSpace(str);
 
 	if (words.empty())
 		return;
-	if (words[0] == "/nick") {
+	if (words[0] == "NICK") {
 		if (words.size() < 2 || words[1].empty()) {
-			cli.sendMessage("Usage: /nick <nickname>");
+			cli->sendMessage("Usage: /nick <nickname>");
 			return;
 		}
 		if (isNickOk(cli, words[1])) {
-			cli.setNickname(words[1]);
-			cli.sendMessage("Nickname set to : " + words[1]);
+			cli->setNickname(words[1]);
+			cli->sendMessage("Nickname set to : " + words[1]);
 		}
 	}
-	else if (words[0] == "/user")
+	else if (words[0] == "USER")
 	{
 		if (words.size() < 2 || words[1].empty())
 		{
-			cli.sendMessage("Usage: /user <username>");
+			cli->sendMessage("Usage: /user <username>");
 			return;
 		}
-		cli.setUsername(words[1]);
-		cli.sendMessage("Username set to : " + words[1]);
+		cli->setUsername(words[1]);
+		cli->sendMessage("Username set to : " + words[1]);
 	}
-	else if (words[0] == "/help") 
+	else if (words[0] == "HELP") 
 		sendHelp(cli);
 
-	else if (words[0] == "/join")
+	else if (words[0] == "JOIN")
 	{
 		std::string channelName = words[1];
 		Join_Command(cli, channelName);
 	}
 
-	else if (words[0] == "/quite")
-		disconnectClient(cli.getFd());
+	else if (words[0] == "QUITE")
+		disconnectClient(cli->getFd());
 	else
-		cli.sendMessage("Commande inconnue ou non implémentée.");
+		cli->sendMessage("Commande inconnue ou non implémentée.");
 }
 
 /*void Server::handleMessage(Client& cli, std::string& msg)
@@ -277,7 +277,8 @@ void Server::clientToServ(Client& cli, std::string& str)
 		it.sendAll(cli&msg);
 
 
-
+	}
+}
 */
 
 void Server::handleClientData(int index) 
@@ -300,12 +301,12 @@ void Server::handleClientData(int index)
 				}
 				else
 					it->sendMessage("Wrong password");
-				sendPrompt(*it);
+				sendPrompt(&(*it));
 				break;
 			}
-			else if (str[0] == '/')
-				clientToServ(*it, str);
-			sendPrompt(*it);
+			else if (str != "")
+				clientToServ(&(*it), str);
+			sendPrompt(&(*it));
 			break;
 		}
 	}
@@ -313,7 +314,7 @@ void Server::handleClientData(int index)
 		disconnectClient(fd);
 }
 
-void Server::Join_Command(Client& client, const std::string& channelName) 
+void Server::Join_Command(Client* client, const std::string& channelName) 
 {
     std::map<std::string, Channel>::iterator it = channels.find(channelName);
 
@@ -321,24 +322,24 @@ void Server::Join_Command(Client& client, const std::string& channelName)
 	{
         // Le canal n'existe pas → on le crée
         Channel newChannel(channelName);
-        newChannel.addMember(client.getNickn(), true); // opérateur
+        newChannel->addMember(client->getNickn(), true); // opérateur
         channels[channelName] = newChannel;
 
-        client.sendMessage("You created and joined #" + channelName);
-        std::cout << client.getNickn() << " created and joined channel #" << channelName << std::endl;
+        client->sendMessage("You created and joined #" + channelName);
+        std::cout << client->getNickn() << " created and joined channel #" << channelName << std::endl;
     } 
     else 
 	{
         // Canal existe → tentative de join
         Channel& existing_channel = it->second;
 
-        if (existing_channel.addMember(client.getNickn())) 
+        if (existing_channel->addMember(client.getNickn())) 
 		{
-            client.sendMessage("You joined #" + channelName);
-            std::cout << client.getNickn() << " joined channel #" << channelName << std::endl;
+            client->sendMessage("You joined #" + channelName);
+            std::cout << client->getNickn() << " joined channel #" << channelName << std::endl;
         } else 
 		{
-            client.sendMessage("Unable to join #" + channelName);
+            client->sendMessage("Unable to join #" + channelName);
         }
     }
 }
