@@ -1,3 +1,4 @@
+//Channel.cpp
 #include "Channel.hpp"
 
 // Constructeur par défaut + paramétré + copie + affectation + Destructeur 
@@ -48,48 +49,74 @@ void Channel::setTopic(const std::string& newTopic)
     topic = newTopic;
 }
 
-//-> Membres -----------------------------------------------------------------------------------------------------------------------------------
-bool Channel::addMember(const std::string& user, bool isOperator)
+int Channel::getOperatorCount() const 
 {
-    if (members.size() >= static_cast<size_t>(maxUsers))
+    int count = 0;
+    for (std::map<Client*, bool>::const_iterator it = members.begin(); it != members.end(); ++it) {
+        if (it->second) // true → c’est un opérateur
+            count++;
+    }
+    return count;
+}
+
+//-> Membres -----------------------------------------------------------------------------------------------------------------------------------
+bool Channel::addMember(Client* client, bool isOp) 
+{
+    if (members.find(client) != members.end())
         return false;
 
-    members[user] = isOperator;
+    //members.insert(std::make_pair(client, isOp));
+    members[client] = isOp;
     return true;
 }
 
-bool Channel::removeMember(const std::string& user)
+std::map<Client*, bool> Channel::getMembers()
 {
-    return members.erase(user) > 0;
+    return this->members;
 }
 
-bool Channel::isMember(const std::string& user) const
+bool Channel::removeMember(Client* client) 
 {
-    return members.find(user) != members.end();
+    return members.erase(client) > 0;
+}
+bool Channel::isEmpty() const 
+{
+    return members.empty();
+}
+bool Channel::isMember(Client* client) const 
+{
+    return members.find(client) != members.end();
 }
 
 /*void	Channel::sendAll(int fd, std::string msg)
 {
 	for (std::map)
 }*/
+
 //-> Permissions -------------------------------------------------------------------------------------------------------------------------------
-bool Channel::promoteToOperator(const std::string& user)
+
+bool Channel::promoteToOperator(Client* user)
 {
-    if (members.find(user) != members.end()) {
-        members[user] = true;
+    std::map<Client*, bool>::iterator it = members.find(user);
+    if (it != members.end()) 
+    {
+        it->second = true;
         return true;
     }
     return false;
 }
 
-bool Channel::demoteOperator(const std::string& user)
+bool Channel::demoteOperator(Client* user)
 {
-    if (members.find(user) != members.end()) {
-        members[user] = false;
+    std::map<Client*, bool>::iterator it = members.find(user);
+    if (it != members.end()) 
+    {
+        it->second = false;
         return true;
     }
     return false;
 }
+
 
 //-> Modes -------------------------------------------------------------------------------------------------------------------------------------
 void Channel::setInviteOnly(bool isInviteOnly)
