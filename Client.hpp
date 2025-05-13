@@ -30,6 +30,7 @@ class Client {
 		
 		std::string readMessage();     // Lire le message envoyé par le client
 		void sendMessage(const std::string& message);  // Envoyer un message au client
+		// prompt -> mieux de la mettre dans utils.hpp
 		void prompt(void);	
 		void setIpAdd(const std::string& addr);
 		void setChanOn(const std::string& chanOn);
