@@ -34,7 +34,6 @@ class Server
 		Server& operator=(const Server&);
 		~Server();
 
-		void sendPrompt(Client* clicli);
 		void disconnectClient(int fd);
 		void handleClientData(int index);
 		void handleMessage(Client* client, std::string& str);
@@ -52,7 +51,3 @@ class Server
 		bool isNickOk(Client* cli, std::string& nick);
 
 };
-
-
-
-

@@ -80,6 +80,14 @@ void Client::sendMessage(const std::string& message)
 	send(fd, formatted.c_str(), formatted.size(), 0);
 }
 
+void Client::prompt(void)
+{
+	std::string chan = getChanOn();
+	std::string p = getNickn() + " ---------- IRC ---------- [" + chan + "]";
+	sendMessage(p);
+	if (!getPass())
+		sendMessage("Password :");
+}
 
 void Client::setIpAdd(const std::string& ipAddr)
 {

@@ -91,7 +91,7 @@ void Server::initializeServer()
 	server_pollfd.revents = 0;
 	poll_fds.push_back(server_pollfd);
 }
-
+/*
 void Server::sendPrompt(Client* clicli)
 {
     std::string chan = clicli->getChanOn();
@@ -115,7 +115,7 @@ void Server::sendPrompt(Client* clicli)
     if (!clicli->getPass())
         clicli->sendMessage("Password :");
 }
-	
+*/	
 void Server::startListening() 
 {
 	while (true) 
@@ -159,7 +159,7 @@ void Server::acceptNewClient()
 	Client* new_client = new Client(client_fd);
 	new_client->setIpAdd(inet_ntoa((client_addr.sin_addr)));
 	// Ajouter le descripteur du client dans la liste des descripteurs
-	sendPrompt(new_client);
+	new_client->prompt();
 	clients.push_back(new_client);
 	pollfd client_pollfd;
 	client_pollfd.fd = client_fd;
@@ -245,11 +245,10 @@ void Server::clientToServ(Client* cli, std::string& str)
 	if (words.empty())
 		return;
 	if (words[0] == "NICK") {
-		if (words.size() < 2 || words[1].empty()) {
-			cli->sendMessage("Usage: /nick <nickname>");
-			return;
-		}
-		if (isNickOk(cli, words[1])) {
+		if (words.size() < 2 || words[1].empty())
+			return	cli->sendMessage("Usage: NICK <nickname>");
+		if (isNickOk(cli, words[1])) 
+		{
 			cli->setNickname(words[1]);
 			cli->sendMessage("Nickname set to : " + words[1]);
 		}
@@ -257,62 +256,51 @@ void Server::clientToServ(Client* cli, std::string& str)
 	else if (words[0] == "USER")
 	{
 		if (words.size() < 2 || words[1].empty())
-		{
-			cli->sendMessage("Usage: /user <username>");
-			return;
-		}
+			return cli->sendMessage("Usage: USER <username>");
 		cli->setUsername(words[1]);
 		cli->sendMessage("Username set to : " + words[1]);
 	}
 	else if (words[0] == "HELP") 
 		sendHelp(cli);
-
 	else if (words[0] == "JOIN")
 	{
 		if (words.size() < 2 || words[1].empty())
-		{
-			cli->sendMessage("Usage: /join <Channel Name>");
-			return;
-		}
+			return	cli->sendMessage("Usage: JOIN <Channel Name>");
 		std::string channelName = words[1];
 		Join_Command(cli, channelName);
 	}
 	else if (words[0] == "PART")
 	{
 		if (words.size() < 2 || words[1].empty())
-		{
-			cli->sendMessage("Usage: /part <Channel Name>");
-			return;
-		}
+			return cli->sendMessage("Usage: PART <Channel Name>");
 		std::string channelName = words[1];
-    	Part_Command(cli, cli->getChanOn());
+		Part_Command(cli, cli->getChanOn());
 	}
 	else if (words[0] == "QUITE")
 		disconnectClient(cli->getFd());
 	else
-		cli->sendMessage("Commande inconnue ou non implémentée.");
+		handleMessage(cli, str);
 }
 
-/*void Server::handleMessage(Client& cli, std::string& msg)
+void Server::handleMessage(Client* cli, std::string& msg)
 {	
-	std::string chanOn = cli.getChanOn;
+	std::string chanOn = cli->getChanOn();
 
-	if (chanOn = "No channel")
-		cli.sendMessage("You have no chanel, please /join #channel");
+	if (chanOn == "No channel")
+		cli->sendMessage("You have no chanel, please JOIN #channel");
 	else
 	{
 		std::map<std::string, Channel>::iterator it = channels.find(chanOn);
 		if (it == channels.end())
 		{
-			cli.sendMessage("Your channel is busted wtf ?");
-			return cli.setChanOn("No channel");
+			cli->sendMessage("Your channel is busted wtf ?");
+			return cli->setChanOn("No channel");
 		}
-		it.sendAll(cli&msg);
-
-
+		msg = trimCRLF(msg);
+		std::string m = cli->getNickn()+" said : "+ msg;
+		(it->second).sendAll(cli, m);
 	}
 }
-*/
 
 void Server::handleClientData(int index) 
 {
@@ -335,12 +323,12 @@ void Server::handleClientData(int index)
 				}
 				else
 					cli->sendMessage("Wrong password");
-				sendPrompt(cli);
+				cli->prompt();
 				break;
 			}
 			else if (str != "")
 				clientToServ(cli, str);
-			sendPrompt(cli);
+			cli->prompt();
 			break;
 		}
 	}
@@ -354,47 +342,38 @@ void Server::Join_Command(Client* client, const std::string& channelName)
 
     if (it == channels.end()) 
     {
-        // Le canal n'existe pas → on le crée
         Channel newChannel(channelName);
         newChannel.addMember(client, true);
         channels[channelName] = newChannel;
 
         client->setChanOn(channelName);
-        client->sendMessage("You created and joined " + channelName);
-        std::cout << client->getNickn() << " created and joined channel " << channelName << std::endl;
+        client->sendMessage("You created and joined : " + channelName);
+        std::cout << client->getNickn() << " created and joined channel : " << channelName << std::endl;
     } 
     else 
     {
-        // Canal existe → tentative de join
         Channel& existing_channel = it->second;
-
+	std::string prompt = client->getNickn() + " joined : " + channelName;
         if (existing_channel.addMember(client)) 
         {
             client->setChanOn(channelName);
-            client->sendMessage("You joined " + channelName);
-            std::cout << client->getNickn() << " joined channel " << channelName << std::endl;
+            client->sendMessage("You joined : " + channelName);
+            existing_channel.sendAll(client, prompt);
         } 
         else 
         {
-            client->sendMessage("Unable to join " + channelName);
+            client->sendMessage("You are already in : " + channelName);
         }
     }
 }
-
 
 void Server::Part_Command(Client* client, const std::string& channelName)
 {
     std::string currentChan = client->getChanOn();
     if (currentChan == "No channel") 
-    {
-        client->sendMessage("You are not in any channel.");
-        return;
-    }
+        return client->sendMessage("You are not in any channel.");
     if (channelName != currentChan) 
-    {
-        client->sendMessage("You are not in " + channelName + ".");
-        return;
-    }
+        return client->sendMessage("You are not in " + channelName + ".");
     std::map<std::string, Channel>::iterator it = channels.find(currentChan);
     if (it == channels.end()) 
     {
@@ -410,10 +389,7 @@ void Server::Part_Command(Client* client, const std::string& channelName)
         std::cout << "Remaining members: " << chan.getMemberCount() << std::endl;
     } 
     else 
-    {
         client->sendMessage("You were not a member of " + currentChan);
-    }
-
     if (chan.isEmpty()) 
     {
         channels.erase(it);

@@ -33,7 +33,6 @@ Channel::~Channel()
 {
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //-> Getters et setters --------------------------------------------------------------------------------------------------------------------------
 std::string Channel::getName() const
@@ -88,10 +87,19 @@ bool Channel::isMember(Client* client) const
     return members.find(client) != members.end();
 }
 
-/*void	Channel::sendAll(int fd, std::string msg)
+void	Channel::sendAll(Client *cli, std::string& msg)
 {
-	for (std::map)
-}*/
+	std::string name = cli->getNickn();
+	for (std::map<Client*, bool>::const_iterator it = members.begin(); it != members.end(); ++it) 
+	{
+		if (((it->first) != cli))
+		{
+			((it->first))->sendMessage(msg);
+			((it->first))->prompt();
+		}
+
+	}
+}
 
 //-> Permissions -------------------------------------------------------------------------------------------------------------------------------
 

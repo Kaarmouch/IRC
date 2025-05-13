@@ -11,46 +11,47 @@
 
 class Channel 
 {
-private:
-    std::string name;                               // Nom du canal
-    std::string topic;                              // Sujet du canal
-    std::map<Client*, bool> members;                // Liste des membres (nom, est-opérateur ?)
-    bool inviteOnly;                                // Mode "sur invitation uniquement"
-    std::string password;                           // Mot de passe du canal (optionnel)
-    
-    int maxUsers;
+	private:
+		std::string name;                               // Nom du canal
+		std::string topic;                              // Sujet du canal
+		std::map<Client*, bool> members;                // Liste des membres (nom, est-opérateur ?)
+		bool inviteOnly;                                // Mode "sur invitation uniquement"
+		std::string password;                           // Mot de passe du canal (optionnel)
 
-public:
-    // Constructeur par défaut + paramétré + copie + affectation + Destructeur 
-    Channel();
-    Channel(const std::string& channelName, const std::string& channelPassword = "", int maxUsers = 50);
-    Channel(const Channel& other);
-    Channel& operator=(const Channel& other);
-    ~Channel();
+		int maxUsers;
 
-    // Getters et setters
-    std::string getName() const;                                                     
-    std::string getTopic() const;
-    void setTopic(const std::string& newTopic);
-    int getOperatorCount() const;
+	public:
+		// Constructeur par défaut + paramétré + copie + affectation + Destructeur 
+		Channel();
+		Channel(const std::string& channelName, const std::string& channelPassword = "", int maxUsers = 50);
+		Channel(const Channel& other);
+		Channel& operator=(const Channel& other);
+		~Channel();
 
-    // Membres (update for Client*)
-    bool addMember(Client* client, bool isOperator = false);
-    bool removeMember(Client* client);                                 // retire un membre
-    bool isEmpty() const;                                                       // return true si plus de membre dans un channel
-    bool isMember(Client* client) const;                               // Savoir si il est deja dans un channel
+		// Getters et setters
+		std::string getName() const;                                                     
+		std::string getTopic() const;
+		void setTopic(const std::string& newTopic);
+		int getOperatorCount() const;
 
-    // Permissions
-    bool promoteToOperator(Client* user);
-    bool demoteOperator(Client*  user);
+		// Membres (update for Client*)
+		bool addMember(Client* client, bool isOperator = false);
+		bool removeMember(Client* client);
+		bool isEmpty() const;
+		bool isMember(Client* client) const;
+		void sendAll(Client *cli, std::string& msg);
 
-    // Modes
-    void setInviteOnly(bool isInviteOnly);
-    void setPassword(const std::string& newPassword);
-    bool checkPassword(const std::string& inputPassword) const;
+		// Permissions
+		bool promoteToOperator(Client* user);
+		bool demoteOperator(Client*  user);
 
-    int getMemberCount() const;
-    std::map<Client*, bool> getMembers();
+		// Modes
+		void setInviteOnly(bool isInviteOnly);
+		void setPassword(const std::string& newPassword);
+		bool checkPassword(const std::string& inputPassword) const;
+
+		int getMemberCount() const;
+		std::map<Client*, bool> getMembers();
     
 };
 
