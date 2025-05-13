@@ -15,7 +15,7 @@ Server& Server::operator=(const Server& other)
 		server_fd = other.server_fd;
 		port = other.port;
 		password = other.password;
-		//channels = other.channels;
+		channels = other.channels;
 		clients = other.clients;
 		poll_fds = other.poll_fds;
 	}
@@ -26,18 +26,20 @@ Server::~Server()
 {
 	if (server_fd >= 0)
 		close(server_fd);
-	for (std::vector<Client>::iterator it = clients.begin(); it != clients.end(); ++it)
+	for (std::vector<Client*>::iterator it = clients.begin(); it != clients.end(); ++it)
 	{
-		close(it->getFd());  // Ferme le descripteur de fichier du client
+		close((*it)->getFd());  // Ferme le descripteur de fichier du client
 		for (std::vector<pollfd>::iterator poll_it = poll_fds.begin(); poll_it != poll_fds.end(); ++poll_it) 
 		{
-			if (poll_it->fd == it->getFd())
+			if (poll_it->fd == (*it)->getFd())
 			{
 				poll_fds.erase(poll_it); // Supprime la socket partie Server 
 				break;
 			}
 		}
+		delete *it;
 	}
+	clients.clear();
 	std::cout << "Server Closed" << std::endl;
 }
 
@@ -154,10 +156,10 @@ void Server::acceptNewClient()
 		return;
 	}
 	std::cout << "New client connected: FD " << client_fd << std::endl;
-	Client new_client(client_fd);
-	new_client.setIpAdd(inet_ntoa((client_addr.sin_addr)));
+	Client* new_client = new Client(client_fd);
+	new_client->setIpAdd(inet_ntoa((client_addr.sin_addr)));
 	// Ajouter le descripteur du client dans la liste des descripteurs
-	sendPrompt(&new_client);
+	sendPrompt(new_client);
 	clients.push_back(new_client);
 	pollfd client_pollfd;
 	client_pollfd.fd = client_fd;
@@ -172,11 +174,12 @@ void Server::disconnectClient(int fd)
 	close(fd);
 
 	// Supprimer le client du vecteur clients
-	for (std::vector<Client>::iterator it = clients.begin(); it != clients.end(); ++it)
+	for (std::vector<Client*>::iterator it = clients.begin(); it != clients.end(); ++it)
 	{
-		if (it->getFd() == fd)
+		if ((*it)->getFd() == fd)
 		{
-			clients.erase(it);
+			delete *it; // lib memory
+			clients.erase(it); //sup vector pointr
 			break;
 		}
 	}
@@ -204,9 +207,9 @@ bool Server::isNickOk(Client* cli, std::string& str)
 		cli->sendMessage(prompt);
 		return 0;
 	}
-	for (std::vector<Client>::iterator it = clients.begin(); it != clients.end(); ++it)
+	for (std::vector<Client*>::iterator it = clients.begin(); it != clients.end(); ++it)
         {
-                if (it->getNickn() == str)
+                if ((*it)->getNickn() == str)
                 {
 			cli->sendMessage(prompti);
                         return 0;
@@ -316,27 +319,28 @@ void Server::handleClientData(int index)
 	int fd = poll_fds[index].fd;
 	std::string str = "";
 
-	for (std::vector<Client>::iterator it = clients.begin(); it != clients.end(); ++it)
+	for (std::vector<Client*>::iterator it = clients.begin(); it != clients.end(); ++it)
 	{
-		if (it->getFd() == fd) 
+		if ((*it)->getFd() == fd) 
 		{
-			str = it->readMessage();
-			std::cout << "Received from "<< it->getNickn() << " " <<it->getPass() << " : "<< str;
-			if (!(it->getPass()))
+			Client * cli = *it;
+			str = cli->readMessage();
+			std::cout << "Received from "<< cli->getNickn() << " " <<cli->getPass() << " : "<< str;
+			if (!(cli->getPass()))
 			{
 				if (trimCRLF(str) == password)
 				{
-					it->sendMessage("You are now authentificated");
-					it->setPass();
+					cli->sendMessage("You are now authentificated");
+					cli->setPass();
 				}
 				else
-					it->sendMessage("Wrong password");
-				sendPrompt(&(*it));
+					cli->sendMessage("Wrong password");
+				sendPrompt(cli);
 				break;
 			}
 			else if (str != "")
-				clientToServ(&(*it), str);
-			sendPrompt(&(*it));
+				clientToServ(cli, str);
+			sendPrompt(cli);
 			break;
 		}
 	}

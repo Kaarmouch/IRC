@@ -15,13 +15,14 @@
 #include "Client.hpp"
 #include <cstdio>
 #include <algorithm>
+#include <list>
 
 class Server
 {
 	private:
 		int	server_fd, port;
 		std::string password;
-		std::vector<Client> clients;
+		std::vector<Client*> clients;
 		std::vector<pollfd> poll_fds;
 
 		std::map<std::string, Channel> channels;
