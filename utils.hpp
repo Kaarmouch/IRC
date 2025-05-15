@@ -3,6 +3,8 @@
 #include <string>
 #include <vector>
 #include <cctype>
+
+std::string get_pass(const std::string& input);
 std::string str_toupper(std::string s);
 std::string trim(const std::string& s);
 int	IsValidPort(const char *portStr);

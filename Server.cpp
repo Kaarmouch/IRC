@@ -305,6 +305,7 @@ void Server::handleMessage(Client* cli, std::string& msg)
 void Server::handleClientData(int index) 
 {
 	int fd = poll_fds[index].fd;
+	int flag = 0;
 	std::string str = "";
 
 	for (std::vector<Client*>::iterator it = clients.begin(); it != clients.end(); ++it)
@@ -323,15 +324,16 @@ void Server::handleClientData(int index)
 			for (size_t i = 0; i < messages.size(); i++)
 			{
 				std::string msg = messages[i];
-
 				if (!(cli->getPass()))
 				{
-					if (msg == password)
+					std::string pass = get_pass(msg);
+					std::cout << "pass " << "'" <<pass<< "'" << std::endl; 
+					if (pass == password)
 					{
 						cli->sendMessage("You are now authentificated");
 						cli->setPass();
 					}
-					else
+					if (!(cli->getPass()) && pass != "CAP")
 						cli->sendMessage("Wrong password");
 				}
 				else

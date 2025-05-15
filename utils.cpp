@@ -14,6 +14,15 @@ std::vector<std::string> splitOnSpace(const std::string& input)
 	return tokens;
 }
 
+std::string get_pass(const std::string& input)
+{
+	std::vector<std::string> vec = splitOnSpace(input);
+	if (vec[0] == "PASS" && (vec.size() >= 2 && !(vec[1].empty())))
+		return vec[1];
+	return vec[0];
+}
+
+
 std::string str_toupper(std::string str)
 {
 	for (std::string::size_type i = 0; i < str.size(); ++i)
