@@ -207,9 +207,10 @@ bool Server::isNickOk(Client* cli, std::string& str)
 		cli->sendMessage(prompt);
 		return 0;
 	}
+	std::string STR = str_toupper(str);
 	for (std::vector<Client*>::iterator it = clients.begin(); it != clients.end(); ++it)
         {
-                if ((*it)->getNickn() == str)
+                if (str_toupper((*it)->getNickn()) == STR)
                 {
 			cli->sendMessage(prompti);
                         return 0;

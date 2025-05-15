@@ -14,6 +14,13 @@ std::vector<std::string> splitOnSpace(const std::string& input)
 	return tokens;
 }
 
+std::string str_toupper(std::string str)
+{
+	for (std::string::size_type i = 0; i < str.size(); ++i)
+		str[i] = std::toupper(static_cast<unsigned char>(str[i]));
+	return str;
+}
+
 std::vector<std::string> splitByCRLF(const std::string& input)
 {
 	std::vector<std::string> result;
