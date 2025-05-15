@@ -324,7 +324,6 @@ void Server::handleClientData(int index)
 			{
 				std::string msg = messages[i];
 
-				std::cout << "Received " + msg << std::endl;
 				if (!(cli->getPass()))
 				{
 					if (msg == password)

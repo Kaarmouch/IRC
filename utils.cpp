@@ -33,14 +33,12 @@ std::vector<std::string> splitByCRLF(const std::string& input)
 		if (!part.empty())
 		{
 			result.push_back(part);
-			std::cout <<"added " + part << std::endl;
 		}
 		start = end + 2; // skip over "\r\n"
 	}
 	if (start < input.length()) 
 	{
 		std::string part = trim(input.substr(start));
-		std::cout << "[rest: " << part << "]" << std::endl;
 		if (!part.empty())
 			result.push_back(part);
 	}
