@@ -296,7 +296,6 @@ void Server::handleMessage(Client* cli, std::string& msg)
 			cli->sendMessage("Your channel is busted wtf ?");
 			return cli->setChanOn("No channel");
 		}
-		msg = trimCRLF(msg);
 		std::string m = cli->getNickn()+" said : "+ msg;
 		(it->second).sendAll(cli, m);
 	}
@@ -314,26 +313,34 @@ void Server::handleClientData(int index)
 			Client * cli = *it;
 			str = cli->readMessage();
 			std::cout << "Received from "<< cli->getNickn() << " " <<cli->getPass() << " : "<< str;
-			if (!(cli->getPass()))
+			if (str == "")
 			{
-				if (trimCRLF(str) == password)
+				disconnectClient(fd);
+				return;
+			}
+			std::vector<std::string> messages = splitByCRLF(str);
+			for (size_t i = 0; i < messages.size(); i++)
+			{
+				std::string msg = messages[i];
+
+				std::cout << "Received " + msg << std::endl;
+				if (!(cli->getPass()))
 				{
-					cli->sendMessage("You are now authentificated");
-					cli->setPass();
+					if (msg == password)
+					{
+						cli->sendMessage("You are now authentificated");
+						cli->setPass();
+					}
+					else
+						cli->sendMessage("Wrong password");
 				}
 				else
-					cli->sendMessage("Wrong password");
-				cli->prompt();
-				break;
+					clientToServ(cli, msg);
 			}
-			else if (str != "")
-				clientToServ(cli, str);
 			cli->prompt();
 			break;
 		}
 	}
-	if (str == "" )
-		disconnectClient(fd);
 }
 
 void Server::Join_Command(Client* client, const std::string& channelName) 
