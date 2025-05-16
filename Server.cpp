@@ -305,7 +305,7 @@ void Server::handleMessage(Client* cli, std::string& msg)
 void Server::handleClientData(int index) 
 {
 	int fd = poll_fds[index].fd;
-	int flag = 0;
+	//int flag = 0;
 	std::string str = "";
 
 	for (std::vector<Client*>::iterator it = clients.begin(); it != clients.end(); ++it)
@@ -344,65 +344,83 @@ void Server::handleClientData(int index)
 		}
 	}
 }
-
 void Server::Join_Command(Client* client, const std::string& channelName) 
 {
-    std::map<std::string, Channel>::iterator it = channels.find(channelName);
+	std::map<std::string, Channel>::iterator it = channels.find(channelName);
+	std::string prompt = client->getNickn() + " joined : " + channelName;
 
+	if (!isValidChannelName(channelName)) 
+	{
+        client->sendMessage("Invalid channel name. Must start with # and not contain invalid characters.");
+        return;
+    }
+    //Verif si le client est déjà dans un channel
+    if (!isClientFree(client)) 
+	{
+        client->sendMessage("You are already in a channel. Use PART first.");
+        return;
+    }
     if (it == channels.end()) 
     {
-        Channel newChannel(channelName);
+        std::pair<std::map<std::string, Channel>::iterator, bool> result =
+            channels.insert(std::make_pair(channelName, Channel(channelName)));
+        Channel& newChannel = result.first->second;
         newChannel.addMember(client, true);
-        channels[channelName] = newChannel;
-
         client->setChanOn(channelName);
-        client->sendMessage("You created and joined : " + channelName);
-        std::cout << client->getNickn() << " created and joined channel : " << channelName << std::endl;
+        client->sendMessage("You created and joined " + channelName);
+        std::cout << client->getNickn() << " created and joined channel " << channelName << std::endl;
     } 
     else 
     {
         Channel& existing_channel = it->second;
-	std::string prompt = client->getNickn() + " joined : " + channelName;
+
         if (existing_channel.addMember(client)) 
         {
             client->setChanOn(channelName);
-            client->sendMessage("You joined : " + channelName);
-            existing_channel.sendAll(client, prompt);
+            client->sendMessage("You joined " + channelName);
+            std::cout << client->getNickn() << " joined channel " << channelName << std::endl;
+
+			std::string joinMsg = client->getNickn() + " has joined the channel.";
+			existing_channel.sendAll(client, prompt);
         } 
         else 
-        {
-            client->sendMessage("You are already in : " + channelName);
-        }
+            client->sendMessage("Unable to join " + channelName);
     }
 }
 
 void Server::Part_Command(Client* client, const std::string& channelName)
 {
-    std::string currentChan = client->getChanOn();
-    if (currentChan == "No channel") 
-        return client->sendMessage("You are not in any channel.");
-    if (channelName != currentChan) 
-        return client->sendMessage("You are not in " + channelName + ".");
-    std::map<std::string, Channel>::iterator it = channels.find(currentChan);
-    if (it == channels.end()) 
+	std::map<std::string, Channel>::iterator it = channels.find(channelName);
+	std::string prompt = client->getNickn() + " joined : " + channelName;
+
+	// est-il dans un channel + verif correspond-il à celui où il est réellement
+    if (!canPartChannel(client, channelName))
+        return;
+    // si channel n’existe pas dans le serveur
+	if (it == channels.end()) 
     {
-        client->sendMessage("Channel " + currentChan + " not found.");
+        client->sendMessage("Channel " + channelName + " not found.");
         client->setChanOn("No channel");
         return;
     }
-    Channel& chan = it->second;
-    if (chan.removeMember(client)) 
+    Channel& existing_channel = it->second;
+    if (existing_channel.removeMember(client)) 
     {
-        client->sendMessage("You left " + currentChan);
-        std::cout << client->getNickn() << " left channel " << currentChan << std::endl;
-        std::cout << "Remaining members: " << chan.getMemberCount() << std::endl;
-    } 
-    else 
-        client->sendMessage("You were not a member of " + currentChan);
-    if (chan.isEmpty()) 
-    {
-        channels.erase(it);
-        std::cout << "Channel " << currentChan << " has been deleted (empty)." << std::endl;
+        client->sendMessage("You left " + channelName);
+        std::cout << client->getNickn() << " left channel " << channelName << std::endl;
+        client->setChanOn("No channel");
+
+		std::string partMsg = client->getNickn() + " has left the channel.";
+		existing_channel.sendAll(client, prompt);
+
+        // Plus personne dans le channel = suprimer de map Channels + log
+		if (existing_channel.isEmpty()) 
+        {
+            channels.erase(it);
+            std::cout << "Channel " << channelName << " has been deleted (empty)." << std::endl;
+        }
     }
-    client->setChanOn("No channel");
+	// pas membre du channel 
+    else 
+        client->sendMessage("You were not a member of " + channelName);
 }
