@@ -1,6 +1,7 @@
 #pragma once
 #include "utils.hpp"
 #include "Channel.hpp"
+#include "CommandHandler.hpp"
 
 #include <vector>
 #include <poll.h>
@@ -38,7 +39,9 @@ class Server
 		void handleClientData(int index);
 		void handleMessage(Client* client, std::string& str);
 		void clientToServ(Client* client, std::string& str);
-		void sendHelp(Client* cli);
+		
+		//Deplacer dans CommandHandler
+		//void sendHelp(Client* cli);
 
 
 		void startListening();
@@ -48,6 +51,11 @@ class Server
 		//Command
 		void Join_Command(Client* client, const std::string& channelName);
 		void Part_Command(Client* client, const std::string& channelName);
+
+		void Topic_Command(Client* client, const std::vector<std::string>& args);
+		void displayTopic(Client* client, Channel& chan);
+		void setupTopic(Client* client, Channel& chan, const std::vector<std::string>& args, const std::string& channelName);
+
 		bool isNickOk(Client* cli, std::string& nick);
 
 };

@@ -92,6 +92,7 @@ void Server::initializeServer()
 	poll_fds.push_back(server_pollfd);
 }
 /*
+// ne pas suprimer pour l'instant (seul back_up)
 void Server::sendPrompt(Client* clicli)
 {
     std::string chan = clicli->getChanOn();
@@ -142,7 +143,6 @@ void Server::startListening()
 		}
 	}
 }
-
 
 void Server::acceptNewClient() 
 {
@@ -218,69 +218,14 @@ bool Server::isNickOk(Client* cli, std::string& str)
         }
 	return 1;
 }
-void Server::sendHelp(Client* cli)
-{
-	std::string prompt = "Commandes disponibles :\n"
-		"/nick <nickname>        - Définir un pseudo 1\n"
-		"/user <username>        - Définir un nom d’utilisateur 1\n"
-		"/join <#channel>        - Rejoindre un canal\n"
-		"/part <#channel>        - Quitter un canal\n"
-		"/quite			 - Quitte le server irc 1\n"
-		"/msg <user/#channel> <message> - Envoyer un message\n"
-		"/kick <#channel> <user> - Expulser un utilisateur\n"
-		"/invite <user> <#channel> - Inviter un utilisateur\n" 
-		"/topic <#channel> [sujet] - Voir ou changer le sujet\n"
-		"/mode <#channel> <mode> [param] - Changer les options du canal\n"
-		"\n"
-		"Modes de channel :\n"
-		"+i : sur invitation  |  +t : sujet réservé aux opérateurs\n"
-		"+k : mot de passe    |  +o : donner/retirer opérateur\n"
-		"+l : limite d’utilisateurs\n";
-	cli->sendMessage(prompt);
-}
 
+// CommandHandler.hpp
 void Server::clientToServ(Client* cli, std::string& str)
 {
-	std::vector<std::string> words = splitOnSpace(str);
-
-	if (words.empty())
-		return;
-	if (words[0] == "NICK") {
-		if (words.size() < 2 || words[1].empty())
-			return	cli->sendMessage("Usage: NICK <nickname>");
-		if (isNickOk(cli, words[1])) 
-		{
-			cli->setNickname(words[1]);
-			cli->sendMessage("Nickname set to : " + words[1]);
-		}
-	}
-	else if (words[0] == "USER")
-	{
-		if (words.size() < 2 || words[1].empty())
-			return cli->sendMessage("Usage: USER <username>");
-		cli->setUsername(words[1]);
-		cli->sendMessage("Username set to : " + words[1]);
-	}
-	else if (words[0] == "HELP") 
-		sendHelp(cli);
-	else if (words[0] == "JOIN")
-	{
-		if (words.size() < 2 || words[1].empty())
-			return	cli->sendMessage("Usage: JOIN <Channel Name>");
-		std::string channelName = words[1];
-		Join_Command(cli, channelName);
-	}
-	else if (words[0] == "PART")
-	{
-		if (words.size() < 2 || words[1].empty())
-			return cli->sendMessage("Usage: PART <Channel Name>");
-		std::string channelName = words[1];
-		Part_Command(cli, cli->getChanOn());
-	}
-	else if (words[0] == "QUITE")
-		disconnectClient(cli->getFd());
-	else
-		handleMessage(cli, str);
+    CommandHandler::execute(*this, cli, str);
+	// parser la commande
+	// identifier commande  (ex: NICK, JOIN, TOPIC, etc.),
+	// appeler la fonction associée (handleNick, handleJoin, etc.).
 }
 
 void Server::handleMessage(Client* cli, std::string& msg)
@@ -288,7 +233,9 @@ void Server::handleMessage(Client* cli, std::string& msg)
 	std::string chanOn = cli->getChanOn();
 
 	if (chanOn == "No channel")
+	{
 		cli->sendMessage("You have no chanel, please JOIN #channel");
+	}
 	else
 	{
 		std::map<std::string, Channel>::iterator it = channels.find(chanOn);
@@ -344,6 +291,8 @@ void Server::handleClientData(int index)
 		}
 	}
 }
+
+
 void Server::Join_Command(Client* client, const std::string& channelName) 
 {
 	std::map<std::string, Channel>::iterator it = channels.find(channelName);
@@ -367,6 +316,8 @@ void Server::Join_Command(Client* client, const std::string& channelName)
         Channel& newChannel = result.first->second;
         newChannel.addMember(client, true);
         client->setChanOn(channelName);
+		// Mise à jour du topic pour prompt principal client
+		client->setCurrentTopic("");
         client->sendMessage("You created and joined " + channelName);
         std::cout << client->getNickn() << " created and joined channel " << channelName << std::endl;
     } 
@@ -377,6 +328,7 @@ void Server::Join_Command(Client* client, const std::string& channelName)
         if (existing_channel.addMember(client)) 
         {
             client->setChanOn(channelName);
+			client->setCurrentTopic(existing_channel.getTopic());
             client->sendMessage("You joined " + channelName);
             std::cout << client->getNickn() << " joined channel " << channelName << std::endl;
 
@@ -409,6 +361,8 @@ void Server::Part_Command(Client* client, const std::string& channelName)
         client->sendMessage("You left " + channelName);
         std::cout << client->getNickn() << " left channel " << channelName << std::endl;
         client->setChanOn("No channel");
+		// Mise à jour du topic pour prompt principal client
+		client->setCurrentTopic("");
 
 		std::string partMsg = client->getNickn() + " has left the channel.";
 		existing_channel.sendAll(client, prompt);
@@ -420,7 +374,83 @@ void Server::Part_Command(Client* client, const std::string& channelName)
             std::cout << "Channel " << channelName << " has been deleted (empty)." << std::endl;
         }
     }
-	// pas membre du channel 
     else 
         client->sendMessage("You were not a member of " + channelName);
 }
+
+void Server::Topic_Command(Client* client, const std::vector<std::string>& args) 
+{
+	if (args.size() < 2) 
+	{
+		client->sendMessage("Not enough parameters");
+		return;
+	}
+	std::string channelName = args[1];
+	std::map<std::string, Channel>::iterator it = channels.find(channelName);
+	if (it == channels.end()) 
+	{
+		client->sendMessage("No such channel");
+		return;
+	}
+	Channel& chan = it->second;
+	if (!chan.isMember(client)) 
+	{
+		client->sendMessage("You're not on that channel");
+		return;
+	}
+	if (args.size() == 2)
+		displayTopic(client, chan);
+	else
+		setupTopic(client, chan, args, channelName);
+}
+
+void Server::displayTopic(Client* client, Channel& chan)
+{
+	std::string topic = chan.getTopic();
+	if (topic.empty()) 
+		client->sendMessage("No topic is set");
+	else
+		client->sendMessage("topic : " + topic);
+}
+
+void Server::setupTopic(Client* client, Channel& chan, const std::vector<std::string>& args, const std::string& channelName)
+{
+	// prompt message -> Creation topic [OK]
+	// prompt message -> Change name Topic [a faire]
+
+	// Vérification des droits
+	// Add isTopicRestricted -> command MODE -t
+	if (!chan.isOperator(client)) 
+	{
+		client->sendMessage("You're not channel operator");
+		return;
+	}
+	// Construction du nouveau topic (tout à partir de args[2])
+	std::string newTopic;
+	for (size_t i = 2; i < args.size(); ++i) 
+	{
+		newTopic += args[i];
+		if (i != args.size() - 1)
+			newTopic += " ";
+	}
+	// Mise à jour du topic pour prompt principal client
+	chan.setTopic(newTopic);
+	// Notifier les membres
+	std::string msg = client->getNickn() + " -> " + channelName + " ADD TOPIC : " + newTopic;
+	chan.sendAll(client, msg);
+
+	// Mise à jour pour tous les clients  pour prompt principal client (A changer ! je vais le faire)
+	for (std::vector<Client*>::iterator it_cli = clients.begin(); it_cli != clients.end(); ++it_cli)
+	{
+		if ((*it_cli)->getChanOn() == channelName)
+		{
+			(*it_cli)->setCurrentTopic(newTopic);
+		}
+	}
+}
+/////////////
+// TODO: Remplacer l'utilisation de currentTopic par un accès direct au topic du Channel (chan.getTopic())
+// Actuellement : chaque client garde une copie locale du topic via setCurrentTopic()
+// À faire : simplifier en supprimant currentTopic côté Client
+// JE VAIS LE FAIRE !!!! (version juste pour tester actuellement)
+///////////////

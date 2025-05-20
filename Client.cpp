@@ -84,6 +84,8 @@ void Client::prompt(void)
 {
 	std::string chan = getChanOn();
 	std::string p = getNickn() + " ---------- IRC ---------- [" + chan + "]";
+	if (!currentTopic.empty())
+		p += "-[" + currentTopic + "]";
 	sendMessage(p);
 	if (!getPass())
 		sendMessage("Password :");
@@ -104,7 +106,10 @@ void Client::setChanOn(const std::string& chanOn)
 {
         this->chanOn = chanOn;
 }
-
+void Client::setCurrentTopic(const std::string& topic)
+{
+	this->currentTopic = topic;
+}
 
 void Client::setNickname(const std::string& nickname)
 {
@@ -115,6 +120,9 @@ void Client::setUsername(const std::string& username)
 {
 	this->username = username;
 }
+
+
+
 /*
 void Client::joinChannel(std::string channelName)
 {

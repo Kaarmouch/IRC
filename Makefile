@@ -6,11 +6,11 @@ RM		= rm -rf
 
 OBJDIR	= objFiles
 
-FILES	= main Server Client Channel utils
+FILES	= main Server Client Channel utils CommandHandler
 
 SRC		= $(FILES:=.cpp)
 OBJ		= $(addprefix $(OBJDIR)/, $(FILES:=.o))
-HEADER	= Channel.hpp Client.hpp Server.hpp utils.hpp
+HEADER	= Channel.hpp Client.hpp Server.hpp utils.hpp CommandHandler.hpp
 
 GREEN	= \e[92m
 YELLOW	= \e[93m

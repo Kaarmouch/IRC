@@ -3,8 +3,11 @@
 #include <string>
 #include <vector>
 #include <cctype>
+
 #include "Channel.hpp"
 #include "Client.hpp"
+
+class Client;
 
 std::string get_pass(const std::string& input);
 std::string str_toupper(std::string s);

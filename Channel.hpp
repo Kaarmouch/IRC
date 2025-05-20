@@ -7,7 +7,9 @@
 #include <vector>
 #include <map>
 #include <set>
+
 #include "Client.hpp"
+#include "utils.hpp"
 
 class Client;
 
@@ -51,6 +53,7 @@ public:
     // Modes
     void setInviteOnly(bool isInviteOnly);                  // +i
     void setTopicRestricted(bool isTopicRestricted);        // +t
+    bool isTopicRestricted() const;
     void setKey(const std::string& key);                    // +k
     void clearKey();                                        // -k
     bool hasKey() const;
@@ -61,10 +64,6 @@ public:
     bool promoteToOperator(Client* client);                 // +o
     bool demoteOperator(Client* client);                    // -o
 
-    // Command
-    //std::string Topic_command(Client* client, const std::vector<std::string>& args);
-
-    
 
     // Utilitaires
     void setPassword(const std::string& newPassword);

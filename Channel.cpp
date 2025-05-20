@@ -3,16 +3,15 @@
 
 // Constructeur par défaut + paramétré + copie + affectation + Destructeur 
 Channel::Channel() : name(""), topic(""), inviteOnly(false), password(""), maxUsers(50)
-{
-}
+{}
 Channel::Channel(const std::string& channelName, const std::string& channelPassword, int maxUsers)
     : name(channelName), topic(""), inviteOnly(false), password(channelPassword), maxUsers(maxUsers)
 {
 }
 Channel::Channel(const Channel& other)
     : name(other.name), topic(other.topic), members(other.members),
-      inviteOnly(other.inviteOnly),
-      password(other.password), maxUsers(other.maxUsers)
+      inviteOnly(other.inviteOnly), password(other.password), 
+      maxUsers(other.maxUsers)
 {
 }
 Channel& Channel::operator=(const Channel& other)
@@ -25,7 +24,6 @@ Channel& Channel::operator=(const Channel& other)
         inviteOnly = other.inviteOnly;
         password = other.password;
         maxUsers = other.maxUsers;
-
     }
     return *this;
 }
@@ -104,10 +102,16 @@ void Channel::setInviteOnly(bool isInviteOnly)
 {
     this->inviteOnly = isInviteOnly;
 }
+*/
 void Channel::setTopicRestricted(bool isTopicRestricted)
 {
     this->topicRestricted = isTopicRestricted;
 }
+bool Channel::isTopicRestricted() const
+{
+    return topicRestricted;
+}
+/*
 void Channel::setKey(const std::string& key)
 {   
     std::cout << " a faire " << std::endl;
@@ -156,8 +160,6 @@ bool Channel::demoteOperator(Client* client)
 
 
 //-> Command -------------------------------------------------------------------------------------------------------------------------------
-//std::string Channel::Topic_command(Client* client, const std::vector<std::string>& args) {}
-
 
 
 
