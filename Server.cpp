@@ -230,22 +230,16 @@ void Server::clientToServ(Client* cli, std::string& str)
 
 void Server::handleMessage(Client* cli, std::string& msg)
 {	
-	std::string chanOn = cli->getChanOn();
+	Channel* chanOn = cli->getChanOn();
 
-	if (chanOn == "No channel")
+	if (!chanOn)
 	{
-		cli->sendMessage("You have no chanel, please JOIN #channel");
+		cli->sendMessage("You have no channel, please JOIN #channel");
 	}
 	else
 	{
-		std::map<std::string, Channel>::iterator it = channels.find(chanOn);
-		if (it == channels.end())
-		{
-			cli->sendMessage("Your channel is busted wtf ?");
-			return cli->setChanOn("No channel");
-		}
-		std::string m = cli->getNickn()+" said : "+ msg;
-		(it->second).sendAll(cli, m);
+		std::string m = cli->getNickn() + " said : " + msg;
+		chanOn->sendAll(cli, m);
 	}
 }
 
@@ -292,7 +286,6 @@ void Server::handleClientData(int index)
 	}
 }
 
-
 void Server::Join_Command(Client* client, const std::string& channelName) 
 {
 	std::map<std::string, Channel>::iterator it = channels.find(channelName);
@@ -313,11 +306,11 @@ void Server::Join_Command(Client* client, const std::string& channelName)
     {
         std::pair<std::map<std::string, Channel>::iterator, bool> result =
             channels.insert(std::make_pair(channelName, Channel(channelName)));
-        Channel& newChannel = result.first->second;
+        
+		Channel& newChannel = result.first->second;
         newChannel.addMember(client, true);
-        client->setChanOn(channelName);
+        client->setChanOn(&newChannel);
 		// Mise à jour du topic pour prompt principal client
-		client->setCurrentTopic("");
         client->sendMessage("You created and joined " + channelName);
         std::cout << client->getNickn() << " created and joined channel " << channelName << std::endl;
     } 
@@ -327,8 +320,7 @@ void Server::Join_Command(Client* client, const std::string& channelName)
 
         if (existing_channel.addMember(client)) 
         {
-            client->setChanOn(channelName);
-			client->setCurrentTopic(existing_channel.getTopic());
+            client->setChanOn(&existing_channel);
             client->sendMessage("You joined " + channelName);
             std::cout << client->getNickn() << " joined channel " << channelName << std::endl;
 
@@ -343,7 +335,7 @@ void Server::Join_Command(Client* client, const std::string& channelName)
 void Server::Part_Command(Client* client, const std::string& channelName)
 {
 	std::map<std::string, Channel>::iterator it = channels.find(channelName);
-	std::string prompt = client->getNickn() + " joined : " + channelName;
+	std::string prompt = client->getNickn() + " left : " + channelName;
 
 	// est-il dans un channel + verif correspond-il à celui où il est réellement
     if (!canPartChannel(client, channelName))
@@ -352,7 +344,7 @@ void Server::Part_Command(Client* client, const std::string& channelName)
 	if (it == channels.end()) 
     {
         client->sendMessage("Channel " + channelName + " not found.");
-        client->setChanOn("No channel");
+        client->setChanOn(NULL);
         return;
     }
     Channel& existing_channel = it->second;
@@ -360,9 +352,8 @@ void Server::Part_Command(Client* client, const std::string& channelName)
     {
         client->sendMessage("You left " + channelName);
         std::cout << client->getNickn() << " left channel " << channelName << std::endl;
-        client->setChanOn("No channel");
+        client->setChanOn(NULL);
 		// Mise à jour du topic pour prompt principal client
-		client->setCurrentTopic("");
 
 		std::string partMsg = client->getNickn() + " has left the channel.";
 		existing_channel.sendAll(client, prompt);
@@ -406,7 +397,7 @@ void Server::Topic_Command(Client* client, const std::vector<std::string>& args)
 
 void Server::displayTopic(Client* client, Channel& chan)
 {
-	std::string topic = chan.getTopic();
+	const std::string& topic = chan.getTopic();
 	if (topic.empty()) 
 		client->sendMessage("No topic is set");
 	else
@@ -433,24 +424,8 @@ void Server::setupTopic(Client* client, Channel& chan, const std::vector<std::st
 		if (i != args.size() - 1)
 			newTopic += " ";
 	}
-	// Mise à jour du topic pour prompt principal client
 	chan.setTopic(newTopic);
-	// Notifier les membres
 	std::string msg = client->getNickn() + " -> " + channelName + " ADD TOPIC : " + newTopic;
 	chan.sendAll(client, msg);
 
-	// Mise à jour pour tous les clients  pour prompt principal client (A changer ! je vais le faire)
-	for (std::vector<Client*>::iterator it_cli = clients.begin(); it_cli != clients.end(); ++it_cli)
-	{
-		if ((*it_cli)->getChanOn() == channelName)
-		{
-			(*it_cli)->setCurrentTopic(newTopic);
-		}
-	}
 }
-/////////////
-// TODO: Remplacer l'utilisation de currentTopic par un accès direct au topic du Channel (chan.getTopic())
-// Actuellement : chaque client garde une copie locale du topic via setCurrentTopic()
-// À faire : simplifier en supprimant currentTopic côté Client
-// JE VAIS LE FAIRE !!!! (version juste pour tester actuellement)
-///////////////

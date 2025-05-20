@@ -1,6 +1,6 @@
 #include "Client.hpp"
 
-Client::Client() : fd(0), realname(""), username(""), nickname(""), authentificated(0), chanOn("No channel") {}
+Client::Client() : fd(0), realname(""), username(""), nickname(""), authentificated(0), chanOn(NULL) {}
 
 Client::Client(const Client &copy) : fd(copy.fd), realname(copy.realname), username(copy.username), nickname(copy.nickname), authentificated(copy.authentificated), chanOn(copy.chanOn) {}
 
@@ -34,7 +34,7 @@ Client::Client(int file_d)
 	realname = "client";
 	username = "client";
 	authentificated = 0;
-	chanOn = "No channel";
+	chanOn = NULL;
 }
 
 int Client::getFd() const
@@ -49,7 +49,7 @@ int Client::getFd() const
 std::string Client::getRealn() const {return realname;}
 std::string Client::getUsern() const {return username;}
 std::string Client::getNickn() const {return nickname;}
-std::string Client::getChanOn() const {return chanOn;}
+Channel* Client::getChanOn() const { return chanOn; }
 bool Client::getPass() const {return authentificated;}
 
 
@@ -70,7 +70,6 @@ std::string Client::readMessage()
 	
 	return msg;
 }
-
 void Client::sendMessage(const std::string& message) 
 {
 	std::string formatted = message;
@@ -79,43 +78,40 @@ void Client::sendMessage(const std::string& message)
 
 	send(fd, formatted.c_str(), formatted.size(), 0);
 }
-
 void Client::prompt(void)
 {
-	std::string chan = getChanOn();
-	std::string p = getNickn() + " ---------- IRC ---------- [" + chan + "]";
-	if (!currentTopic.empty())
-		p += "-[" + currentTopic + "]";
+	std::string p = getNickn() + " ---------- IRC ---------- ";
+	if (chanOn != NULL) 
+	{
+		p += "[" + chanOn->getName() + "]";
+		if (!chanOn->getTopic().empty())
+			p += "-[" + chanOn->getTopic() + "]";
+	} 
+	else 
+		p += "[No channel]";
+
 	sendMessage(p);
 	if (!getPass())
 		sendMessage("Password :");
 }
-
 void Client::setIpAdd(const std::string& ipAddr)
 {
 	realname = ipAddr;
 	std::cout << "address set to " << realname << std::endl;
 }
-
 void Client::setPass(void)
 {
 	authentificated = 1;
 }
-
-void Client::setChanOn(const std::string& chanOn)
+void Client::setChanOn(Channel* chan) 
 {
-        this->chanOn = chanOn;
-}
-void Client::setCurrentTopic(const std::string& topic)
-{
-	this->currentTopic = topic;
+	this->chanOn = chan;
 }
 
 void Client::setNickname(const std::string& nickname)
 {
 	this->nickname = nickname;
 }
-
 void Client::setUsername(const std::string& username)
 {
 	this->username = username;

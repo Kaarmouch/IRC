@@ -100,9 +100,9 @@ bool isValidChannelName(const std::string& name)
 
 bool isClientFree(Client* client)
 {
-    if (client->getChanOn() != "No channel")
+    if (client->getChanOn() != NULL)
     {
-        std::cout << "[Channel Check] Client already in channel: " << client->getChanOn() << std::endl;
+        std::cout << "[Channel Check] Client already in channel: " << client->getChanOn()->getName() << std::endl;
         return false;
     }
     return true;
@@ -110,17 +110,17 @@ bool isClientFree(Client* client)
 
 bool canPartChannel(Client* client, const std::string& requestedChan)
 {
-    std::string currentChan = client->getChanOn();
+    Channel* chan = client->getChanOn();
 
-    if (currentChan == "No channel")
+    if (chan == NULL)
     {
         std::cout << "[Part Check] Client not in any channel.\n";
         client->sendMessage("You are not in any channel.");
         return false;
     }
-    if (requestedChan != currentChan)
+    if (chan->getName() != requestedChan)
     {
-        std::cout << "[Part Check] Client tried to part " << requestedChan << " but is in " << currentChan << ".\n";
+        std::cout << "[Part Check] Client tried to part " << requestedChan << " but is in " << chan->getName() << ".\n";
         client->sendMessage("You are not in " + requestedChan + ".");
         return false;
     }

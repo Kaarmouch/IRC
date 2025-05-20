@@ -9,13 +9,14 @@
 #include "Channel.hpp"
 #include "utils.hpp"
 
+class Channel;
+
 class Client {
 	private:
 		int fd; 
 		std::string realname, username, nickname; // nickname -> unique
 		bool authentificated;
-		std::string chanOn;
-		std::string currentTopic;
+		Channel* chanOn;
 		std::vector<std::string> channels;
 
 
@@ -30,7 +31,7 @@ class Client {
 		std::string getUsern() const;  // Accesseur pour obtenir le descripteur de fichier
 		std::string getNickn() const;  // Accesseur pour obtenir le descripteur de fichier
 		bool getPass() const;
-		std::string getChanOn() const;
+		Channel* getChanOn() const;
 
 
 		
@@ -38,8 +39,7 @@ class Client {
 		void sendMessage(const std::string& message);  // Envoyer un message au client
 		void prompt(void);
 		void setIpAdd(const std::string& addr);
-		void setChanOn(const std::string& chanOn);
-		void setCurrentTopic(const std::string& topic);
+		void setChanOn(Channel* chan);
 		void setPass(void);
 		void setNickname(const std::string& nickname);
 		void setUsername(const std::string& name);
