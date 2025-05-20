@@ -35,7 +35,7 @@ void CommandHandler::execute(Server& server, Client* client, const std::string& 
     else if (command == "QUIT" || command == "QUIT\r")
         server.disconnectClient(client->getFd());
     else
-        handleUnknown(client, command);
+        server.handleMessage(client, command);
 }
 
 void CommandHandler::handleNick(Server& server, Client* client, const std::vector<std::string>& words) 

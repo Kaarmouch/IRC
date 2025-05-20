@@ -40,10 +40,51 @@ std::string Channel::getTopic() const
 {
     return topic;
 }
+bool Channel::getIOnly() const
+{
+	return inviteOnly;
+}
+
+bool Channel::getRTopic() const
+{
+        return topicRestricted;
+}
+
+int Channel::getMaxUsers() const
+{
+        return maxUsers;
+}
+
+std::string Channel::getPassword() const
+{
+        return password;
+}
+
 void Channel::setTopic(const std::string& newTopic)
 {
     topic = newTopic;
 }
+
+void Channel::setIOnly(const bool mode)
+{
+	inviteOnly = mode;
+}
+
+void Channel::setRTopic(const bool mode)
+{
+	topicRestricted = mode;
+}
+
+void Channel::setMaxUsers(const unsigned int maxU)
+{
+	maxUsers = maxU;
+}
+
+void Channel::setPassword(const std::string &pass)
+{
+	password = pass;
+}
+
 int Channel::getOperatorCount() const 
 {
     int count = 0;
@@ -96,46 +137,6 @@ void	Channel::sendAll(Client *cli, std::string& msg)
 	}
 }
 
-//-> Modes -------------------------------------------------------------------------------------------------------------------------------
-/*
-void Channel::setInviteOnly(bool isInviteOnly)
-{
-    this->inviteOnly = isInviteOnly;
-}
-*/
-void Channel::setTopicRestricted(bool isTopicRestricted)
-{
-    this->topicRestricted = isTopicRestricted;
-}
-bool Channel::isTopicRestricted() const
-{
-    return topicRestricted;
-}
-/*
-void Channel::setKey(const std::string& key)
-{   
-    std::cout << " a faire " << std::endl;
-}
-void Channel::clearKey()
-{
-    std::cout << " a faire " << std::endl;
-}
-bool Channel::hasKey() const
-{
-    std::cout << " a faire " << std::endl;
-}
-void Channel::setUserLimit(int limit)
-{
-    std::cout << " a faire " << std::endl;
-}
-void Channel::clearUserLimit()
-{
-    std::cout << " a faire " << std::endl;
-}
-bool Channel::isFull() const
-{
-    std::cout << " a faire " << std::endl;
-}
 bool Channel::promoteToOperator(Client* client)
 {
     std::map<Client*, bool>::iterator it = members.find(client);
@@ -146,6 +147,7 @@ bool Channel::promoteToOperator(Client* client)
     }
     return false;
 }
+
 bool Channel::demoteOperator(Client* client)
 {
     std::map<Client*, bool>::iterator it = members.find(client);
@@ -156,7 +158,7 @@ bool Channel::demoteOperator(Client* client)
     }
     return false;
 }
-*/
+
 
 
 //-> Command -------------------------------------------------------------------------------------------------------------------------------
@@ -164,10 +166,6 @@ bool Channel::demoteOperator(Client* client)
 
 
 //-> Utilitaires -------------------------------------------------------------------------------------------------------------------------------
-void Channel::setPassword(const std::string& newPassword)
-{
-    this->password = newPassword;
-}
 bool Channel::checkPassword(const std::string& inputPassword) const
 {
     return inputPassword == password;

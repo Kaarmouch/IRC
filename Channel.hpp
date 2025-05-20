@@ -25,22 +25,32 @@ private:
     std::string password;                           // +k -> Mot de pase channel
     bool hasPassword;                               // Pour vérifier si une clé est définie
     int maxUsers;                                   // Mode +l : Limite d'utilisateurs
-    bool limitSet;
+    bool limitSet;		// si limitSet est la pour savoir si le mode +l est mis, on peut juste inititer maxUsers a -1 et consciderer ca comme non set, same pour pasword ?
+
     
 
 
 public:
     Channel();
-    Channel(const std::string& channelName, const std::string& channelPassword = "", int maxUsers = 50);
+    Channel(const std::string& channelName, const std::string& channelPassword = "", int maxUsers = 50); // genre initier maxUser a -1
     Channel(const Channel& other);
     Channel& operator=(const Channel& other);
     ~Channel();
 
     // Getters / Setters
     std::string getName() const;                                                     
+    bool getIOnly() const;
+    bool getRTopic() const;
+    int getMaxUsers() const;
+    std::string getPassword() const;
     std::string getTopic() const;
-    void setTopic(const std::string& newTopic);
     int getOperatorCount() const;
+
+    void setTopic(const std::string& newTopic);
+    void setIOnly(const bool mode);
+    void setRTopic(const bool mode);
+    void setMaxUsers(const unsigned int maxU);
+    void setPassword(const std::string &pass);
 
     // Membres
     bool addMember(Client* client, bool isOperator = false);
@@ -51,25 +61,15 @@ public:
     void sendAll(Client *cli, std::string& msg);
     
     // Modes
-    void setInviteOnly(bool isInviteOnly);                  // +i
-    void setTopicRestricted(bool isTopicRestricted);        // +t
-    bool isTopicRestricted() const;
-    void setKey(const std::string& key);                    // +k
-    void clearKey();                                        // -k
-    bool hasKey() const;
-    void setUserLimit(int limit);                           // +l
-    void clearUserLimit();                                  // -l
-    bool isFull() const;
     
     bool promoteToOperator(Client* client);                 // +o
     bool demoteOperator(Client* client);                    // -o
 
 
     // Utilitaires
-    void setPassword(const std::string& newPassword);
-    bool checkPassword(const std::string& inputPassword) const;
     int getMemberCount() const;
     std::map<Client*, bool> getMembers();
+    bool checkPassword(const std::string& inputPassword) const;
     
 };
 

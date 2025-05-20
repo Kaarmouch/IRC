@@ -174,6 +174,8 @@ void Server::disconnectClient(int fd)
 	close(fd);
 
 	// Supprimer le client du vecteur clients
+	// Appeler une Channel::fonction qui libere pointeur client (et reorganise les operators ?)
+	//recup chann avec le fd ? donner directement &Client a la fonction pour link avec le channel
 	for (std::vector<Client*>::iterator it = clients.begin(); it != clients.end(); ++it)
 	{
 		if ((*it)->getFd() == fd)
@@ -297,7 +299,7 @@ void Server::Join_Command(Client* client, const std::string& channelName)
         return;
     }
     //Verif si le client est déjà dans un channel
-    if (!isClientFree(client)) 
+    if (!isClientFree(client)) //client->getChanOn != "No channel"
 	{
         client->sendMessage("You are already in a channel. Use PART first.");
         return;
