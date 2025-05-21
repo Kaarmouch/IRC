@@ -23,7 +23,6 @@ private:
     static void handlePart(Server& server, Client* client, const std::vector<std::string>& words);
     static void handleTopic(Server& server, Client* client, const std::vector<std::string>& words);
     static void handleHelp(Client* client);
-    static void handleUnknown(Client* client, const std::string& command);
 };
 
 #endif

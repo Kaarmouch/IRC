@@ -32,11 +32,49 @@ void CommandHandler::execute(Server& server, Client* client, const std::string& 
         handleTopic(server, client, words);
     else if (command == "HELP")
         handleHelp(client);
-    else if (command == "QUIT" || command == "QUIT\r")
+    else if (command == "QUIT")
         server.disconnectClient(client->getFd());
+    else if (command == "MODE")
+	    handleMode(server, client, words);
     else
         server.handleMessage(client, command);
 }
+
+void CommandHandler::handleMode(Server& s, Client* c, const std::vector<std::string>& words)
+{
+	if (!requireArgs(c, words, 2, "MODE <type> [if needed]"))
+		return;
+	Channel* chanOn = c->getChanOn();
+	if (!on->isOperator(c))
+	{
+		c->sendMessage("You're not channel operator");
+		return;
+	}
+	if (word[1] == "-i" )
+		chanOn->setIOnly(0);
+	else if (word[1] == "+i")
+		chanOn->setIOnly(1);
+	else if (words[1] == "-t")
+		chanOn->setRTopic(1);
+	else if (words[1] == "+t")
+		chanOn->setRTopic(0);
+	else if (words[1] == "-k")
+		chaOn->setPassword(NULL);
+	if (!requireArgs(c, words, 3, "MODE <type> [needed]"))
+                return;
+	else if (words[1] == "+k" && !words[2])
+		c->sendMessage("You need to add a value : +k");
+	else if (words[1] == "+k" && words[2])
+		chanOn->setPassword(words[2]);
+	/*else if (words[1] = "-o")
+	{
+		chanOn
+	else if (words[1] = "+o") verifier que word.size >=  3 peut etre reqpler requireArgs avec 3
+
+	else if (words[1] "-l")
+	else if (words[1] "+l")
+}*/ 
+
 
 void CommandHandler::handleNick(Server& server, Client* client, const std::vector<std::string>& words) 
 {
@@ -99,12 +137,4 @@ void CommandHandler::handleHelp(Client* client)
 
     client->sendMessage(help);
 }
-
-void CommandHandler::handleUnknown(Client* client, const std::string& command) 
-{
-    client->sendMessage("Unknown command: " + command);
-}
-
-
-
 

@@ -224,7 +224,6 @@ bool Server::isNickOk(Client* cli, std::string& str)
 // CommandHandler.hpp
 void Server::clientToServ(Client* cli, std::string& str)
 {
-    CommandHandler::execute(*this, cli, str);
 	// parser la commande
 	// identifier commande  (ex: NICK, JOIN, TOPIC, etc.),
 	// appeler la fonction associée (handleNick, handleJoin, etc.).
@@ -248,7 +247,6 @@ void Server::handleMessage(Client* cli, std::string& msg)
 void Server::handleClientData(int index) 
 {
 	int fd = poll_fds[index].fd;
-	//int flag = 0;
 	std::string str = "";
 
 	for (std::vector<Client*>::iterator it = clients.begin(); it != clients.end(); ++it)
@@ -280,7 +278,7 @@ void Server::handleClientData(int index)
 						cli->sendMessage("Wrong password");
 				}
 				else
-					clientToServ(cli, msg);
+					CommandHandler::execute(*this, cli, msg);
 			}
 			cli->prompt();
 			break;
@@ -329,8 +327,6 @@ void Server::Join_Command(Client* client, const std::string& channelName)
 			std::string joinMsg = client->getNickn() + " has joined the channel.";
 			existing_channel.sendAll(client, prompt);
         } 
-        else 
-            client->sendMessage("Unable to join " + channelName);
     }
 }
 
