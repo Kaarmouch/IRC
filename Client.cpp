@@ -78,22 +78,37 @@ void Client::sendMessage(const std::string& message)
 
 	send(fd, formatted.c_str(), formatted.size(), 0);
 }
+
 void Client::prompt(void)
 {
 	std::string p = getNickn() + " ---------- IRC ---------- ";
+
 	if (chanOn != NULL) 
 	{
 		p += "[" + chanOn->getName() + "]";
+
 		if (!chanOn->getTopic().empty())
 			p += "-[" + chanOn->getTopic() + "]";
+
+		//Ajout du nombre d'opérateurs et de membres
+		int opCount = chanOn->getOperatorCount();
+		int memberCount = chanOn->getMemberCount();
+
+		std::ostringstream oss;
+		oss << " -> [Operators: " << opCount << " | Members: " << memberCount << "]";
+		p += oss.str();
 	} 
 	else 
+	{
 		p += "[No channel]";
+	}
 
 	sendMessage(p);
+
 	if (!getPass())
 		sendMessage("Password :");
 }
+
 void Client::setIpAdd(const std::string& ipAddr)
 {
 	realname = ipAddr;

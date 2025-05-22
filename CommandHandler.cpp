@@ -40,40 +40,113 @@ void CommandHandler::execute(Server& server, Client* client, const std::string& 
         server.handleMessage(client, command);
 }
 
-void CommandHandler::handleMode(Server& s, Client* c, const std::vector<std::string>& words)
+void CommandHandler::handleMode(Server& server, Client* client, const std::vector<std::string>& words)
 {
-	if (!requireArgs(c, words, 2, "MODE <type> [if needed]"))
+	if (!requireArgs(client, words, 2, "MODE <channel> [modes]"))
 		return;
-	Channel* chanOn = c->getChanOn();
-	if (!on->isOperator(c))
+
+	const std::string& channelName = words[1];
+	std::map<std::string, Channel>& chans = server.getChannels();
+	std::map<std::string, Channel>::iterator it = chans.find(channelName);
+    //cherche le channel
+	if (it == chans.end())
 	{
-		c->sendMessage("You're not channel operator");
+		client->sendMessage("No such channel");
 		return;
 	}
-	if (word[1] == "-i" )
-		chanOn->setIOnly(0);
-	else if (word[1] == "+i")
-		chanOn->setIOnly(1);
-	else if (words[1] == "-t")
-		chanOn->setRTopic(1);
-	else if (words[1] == "+t")
-		chanOn->setRTopic(0);
-	else if (words[1] == "-k")
-		chaOn->setPassword(NULL);
-	if (!requireArgs(c, words, 3, "MODE <type> [needed]"))
-                return;
-	else if (words[1] == "+k" && !words[2])
-		c->sendMessage("You need to add a value : +k");
-	else if (words[1] == "+k" && words[2])
-		chanOn->setPassword(words[2]);
-	/*else if (words[1] = "-o")
+	Channel& chan = it->second;
+	if (!chan.isOperator(client))
 	{
-		chanOn
-	else if (words[1] = "+o") verifier que word.size >=  3 peut etre reqpler requireArgs avec 3
+		client->sendMessage("You're not channel operator");
+		return;
+	}
+    // Si Aucun mode précisé
+	if (words.size() == 2)
+	{
+		client->sendMessage("Channel modes: [not implemented yet]");
+		return;
+	}
 
-	else if (words[1] "-l")
-	else if (words[1] "+l")
-}*/ 
+	const std::string& mode = words[2];
+
+	if (mode == "+o" || mode == "-o")
+		ModeOperator(server, client, chan, words);
+    /*    
+	else if (mode == "+i" || mode == "-i")
+		handleModeInvite(chan, mode, client);
+    */
+	else if (mode == "+t" || mode == "-t")
+		handleModeTopic(chan, mode, client);
+    /*
+	else if (mode == "+k" || mode == "-k")
+		handleModeKey(chan, words, client);
+        
+	else if (mode == "+l" || mode == "-l")
+		handleModeLimit(chan, words, client);
+    */
+	else
+		client->sendMessage("Unknown mode: " + mode);
+        // AJOUTER -> Message help des commande mode dispognible [+o/-o] [+t/-t] etc....
+}
+
+void CommandHandler::ModeOperator(Server& server, Client* client, Channel& chan, const std::vector<std::string>& words)
+{
+    // verif nickname
+	if (words.size() < 4)
+	{
+		client->sendMessage("Usage: MODE <channel> [+o/-o] <nickname>");
+		return;
+	}
+	const std::string& Nick = words[3];
+	Client* target = server.findClientByNick(Nick);
+
+    std::string msg1 = Nick + " is now an operator.";
+    std::string msg2 = Nick + " is no longer an operator.";
+    std::string msg3 = Nick + " is already an operator.";
+	if (!target || !chan.isMember(target))
+	{
+		client->sendMessage("User not in channel");
+		return;
+	}
+	if (words[2] == "+o")
+	{
+		if (!chan.isOperator(target))
+		{
+			chan.promoteToOperator(target);
+			chan.sendAll(client, msg1);
+		}
+		else
+			client->sendMessage(Nick + " is already an operator.");
+	}
+	else // "-o"
+	{
+		if (chan.isOperator(target))
+		{
+			chan.demoteOperator(target);
+			chan.sendAll(client, msg1);
+		}
+		else
+            chan.sendAll(client, msg2);
+	}
+}
+
+void CommandHandler::handleModeTopic(Channel& chan, const std::string& mode, Client* client)
+{
+    std::string msg1 = chan.getName() + " is now topic-restricted (+t)";
+    std::string msg2 = chan.getName() + " is no longer topic-restricted (-t)";
+
+	if (mode == "+t")
+	{
+		chan.setRTopic(true);
+		chan.sendAll(client, msg1);
+	}
+	else if (mode == "-t")
+	{
+		chan.setRTopic(false);
+		chan.sendAll(client, msg2);
+	}
+}
+
 
 
 void CommandHandler::handleNick(Server& server, Client* client, const std::vector<std::string>& words) 

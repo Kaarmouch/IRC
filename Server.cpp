@@ -222,12 +222,13 @@ bool Server::isNickOk(Client* cli, std::string& str)
 }
 
 // CommandHandler.hpp
+/*
 void Server::clientToServ(Client* cli, std::string& str)
 {
 	// parser la commande
 	// identifier commande  (ex: NICK, JOIN, TOPIC, etc.),
 	// appeler la fonction associée (handleNick, handleJoin, etc.).
-}
+}*/
 
 void Server::handleMessage(Client* cli, std::string& msg)
 {	
@@ -404,14 +405,9 @@ void Server::displayTopic(Client* client, Channel& chan)
 
 void Server::setupTopic(Client* client, Channel& chan, const std::vector<std::string>& args, const std::string& channelName)
 {
-	// prompt message -> Creation topic [OK]
-	// prompt message -> Change name Topic [a faire]
-
-	// Vérification des droits
-	// Add isTopicRestricted -> command MODE -t
-	if (!chan.isOperator(client)) 
+	if (chan.getRTopic() && !chan.isOperator(client)) 
 	{
-		client->sendMessage("You're not channel operator");
+		client->sendMessage("Cannot change topic (+t is active and you are not an operator)");
 		return;
 	}
 	// Construction du nouveau topic (tout à partir de args[2])
@@ -426,4 +422,19 @@ void Server::setupTopic(Client* client, Channel& chan, const std::vector<std::st
 	std::string msg = client->getNickn() + " -> " + channelName + " ADD TOPIC : " + newTopic;
 	chan.sendAll(client, msg);
 
+}
+
+std::map<std::string, Channel>& Server::getChannels()
+{
+	return channels;
+}
+
+Client* Server::findClientByNick(const std::string& nickname)
+{
+	for (std::vector<Client*>::iterator it = clients.begin(); it != clients.end(); ++it)
+	{
+		if ((*it)->getNickn() == nickname)
+			return *it;
+	}
+	return NULL;
 }

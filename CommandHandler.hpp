@@ -23,6 +23,10 @@ private:
     static void handlePart(Server& server, Client* client, const std::vector<std::string>& words);
     static void handleTopic(Server& server, Client* client, const std::vector<std::string>& words);
     static void handleHelp(Client* client);
+
+    static void handleMode(Server& server, Client* client, const std::vector<std::string>& words);
+    static void ModeOperator(Server& server, Client* client, Channel& chan, const std::vector<std::string>& words);
+    static void handleModeTopic(Channel& chan, const std::string& mode, Client* client);
 };
 
 #endif

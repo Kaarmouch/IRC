@@ -38,11 +38,10 @@ class Server
 		void disconnectClient(int fd);
 		void handleClientData(int index);
 		void handleMessage(Client* client, std::string& str);
-		void clientToServ(Client* client, std::string& str);
 		
-		//Deplacer dans CommandHandler
-		//void sendHelp(Client* cli);
-
+		//getter
+		std::map<std::string, Channel>& getChannels();
+		Client* findClientByNick(const std::string& nickname);
 
 		void startListening();
 		void initializeServer();
