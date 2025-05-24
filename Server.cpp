@@ -221,14 +221,6 @@ bool Server::isNickOk(Client* cli, std::string& str)
 	return 1;
 }
 
-// CommandHandler.hpp
-/*
-void Server::clientToServ(Client* cli, std::string& str)
-{
-	// parser la commande
-	// identifier commande  (ex: NICK, JOIN, TOPIC, etc.),
-	// appeler la fonction associée (handleNick, handleJoin, etc.).
-}*/
 
 void Server::handleMessage(Client* cli, std::string& msg)
 {	
@@ -436,5 +428,13 @@ Client* Server::findClientByNick(const std::string& nickname)
 		if ((*it)->getNickn() == nickname)
 			return *it;
 	}
+	return NULL;
+}
+
+Channel* Server::findChanByName(const std::string& name)
+{
+	std::map<std::string, Channel>::iterator it = channels.find(name);
+	if (it != channels.end())
+		return &(it->second);
 	return NULL;
 }

@@ -1,4 +1,5 @@
 #include "CommandHandler.hpp"
+#include "utils.hpp"
 
 static bool requireArgs(Client* client, const std::vector<std::string>& words, size_t min, const std::string& usage) 
 {
@@ -32,12 +33,46 @@ void CommandHandler::execute(Server& server, Client* client, const std::string& 
         handleTopic(server, client, words);
     else if (command == "HELP")
         handleHelp(client);
+    else if (command == "PRIVMSG")
+	    handlePrivate(server, client, words);
     else if (command == "QUIT")
         server.disconnectClient(client->getFd());
     else if (command == "MODE")
 	    handleMode(server, client, words);
     else
         server.handleMessage(client, command);
+}
+
+void CommandHandler::handlePrivate(Server& server, Client* client, const std::vector<std::string>& words)
+{
+	 if (words.size() <= 2)
+	 {
+		 client->sendMessage("Nothing to send");
+		 return;
+	 }
+	 std::string message = client->getNickn() + " said :";
+	 for (size_t i = 2; i < words.size(); ++i)
+	 {
+		 if (i > 2)
+			 message += " ";
+		 message += words[i];
+	 }
+	 if (words[1][0] == '#')
+	 {
+		 Channel* chan = server.findChanByName(words[1]);
+		 if (!chan)
+		 {
+			 client->sendMessage("channel dont exist");
+			 return;
+		 }
+		 chan->sendAll(client, message);
+		 return;
+	 }
+	 Client* target = server.findClientByNick(words[1]);
+	 if (target)
+		 target->sendMessage(message);
+	 else
+		 client->sendMessage("No target found");
 }
 
 void CommandHandler::handleMode(Server& server, Client* client, const std::vector<std::string>& words)
@@ -71,23 +106,62 @@ void CommandHandler::handleMode(Server& server, Client* client, const std::vecto
 
 	if (mode == "+o" || mode == "-o")
 		ModeOperator(server, client, chan, words);
-    /*    
 	else if (mode == "+i" || mode == "-i")
 		handleModeInvite(chan, mode, client);
-    */
 	else if (mode == "+t" || mode == "-t")
 		handleModeTopic(chan, mode, client);
-    /*
-	else if (mode == "+k" || mode == "-k")
-		handleModeKey(chan, words, client);
-        
+/*	else if (mode == "+k" || mode == "-k")
+		handleModeKey(chan, words, client);*/
 	else if (mode == "+l" || mode == "-l")
 		handleModeLimit(chan, words, client);
-    */
 	else
 		client->sendMessage("Unknown mode: " + mode);
         // AJOUTER -> Message help des commande mode dispognible [+o/-o] [+t/-t] etc....
 }
+
+void CommandHandler::handleModeLimit(Channel& chan, const std::vector<std::string>& word, Client* client)
+{
+	std::string msg1 = chan.getName() + " is now length-restricted (+l) : ";
+	std::string msg2 = chan.getName() + " is no longer length-restricted (-l)";
+	
+	if (word[2] == "-l")
+        {
+                chan.setMaxUsers(-1);
+                chan.sendAll(client, msg2);
+		return;
+        }
+	if (word[2] == "+l")
+	{
+		int limit;
+		if (word.size() <= 3 || word[3].empty() || !isPositiveInt(word[3], limit))
+		{
+			client->sendMessage("Usage : mode +l number > 0");
+			return;
+		}
+		msg1 += word[3];
+                chan.setMaxUsers(limit);
+                chan.sendAll(client, msg1);
+        }
+}
+
+
+void CommandHandler::handleModeInvite(Channel& chan, const std::string& mode, Client* client)
+{
+    std::string msg1 = chan.getName() + " is now invit-restricted (+i)";
+    std::string msg2 = chan.getName() + " is no longer invit-restricted (-i)";
+
+        if (mode == "+i")
+        {
+                chan.setIOnly(true);
+                chan.sendAll(client, msg1);
+        }
+        else if (mode == "-i")
+        {
+                chan.setIOnly(false);
+                chan.sendAll(client, msg2);
+        }
+}
+
 
 void CommandHandler::ModeOperator(Server& server, Client* client, Channel& chan, const std::vector<std::string>& words)
 {
@@ -147,20 +221,19 @@ void CommandHandler::handleModeTopic(Channel& chan, const std::string& mode, Cli
 	}
 }
 
-
-
 void CommandHandler::handleNick(Server& server, Client* client, const std::vector<std::string>& words) 
 {
     if (!requireArgs(client, words, 2, "NICK <nickname>"))
         return;
-
-    std::string nickname = words[1];
-    if (server.isNickOk(client, nickname)) 
+    std::string newNick = words[1];
+    if (server.isNickOk(client, newNick)) 
     {
-        client->setNickname(nickname);
-        client->sendMessage("Nickname set to: " + nickname);
+	    std::string oldNick = client->getNickn();
+	    client->sendMessage(oldNick +" changed his nickname to : " + newNick);
+	    client->setNickname(newNick);
     }
 }
+
 void CommandHandler::handleUser(Server& server, Client* client, const std::vector<std::string>& words) 
 {
     (void)server;

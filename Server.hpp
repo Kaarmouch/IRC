@@ -42,6 +42,7 @@ class Server
 		//getter
 		std::map<std::string, Channel>& getChannels();
 		Client* findClientByNick(const std::string& nickname);
+		Channel* findChanByName(const std::string& name);
 
 		void startListening();
 		void initializeServer();

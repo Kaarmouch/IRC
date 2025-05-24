@@ -61,6 +61,21 @@ std::string trim(const std::string& str) {
 	return str.substr(first, (last - first + 1));
 }
 
+bool isPositiveInt(const std::string& str, int& result)
+{
+    if (str.empty())
+        return false;
+
+    for (std::string::const_iterator it = str.begin(); it != str.end(); ++it)
+    {
+        if (!std::isdigit(*it))
+            return false;
+    }
+    std::istringstream iss(str);
+    iss >> result;
+    return !iss.fail() && result > 0;
+}
+
 int	IsValidPort(const char *portStr)
 {
 	std::string	str(portStr);

@@ -51,6 +51,7 @@ std::string Client::getUsern() const {return username;}
 std::string Client::getNickn() const {return nickname;}
 Channel* Client::getChanOn() const { return chanOn; }
 bool Client::getPass() const {return authentificated;}
+std::string Client::getFullMask() const {return getNickn() + "!" + getUsern() + "@" + getRealn();}
 
 
 std::string Client::readMessage() 
@@ -81,7 +82,7 @@ void Client::sendMessage(const std::string& message)
 
 void Client::prompt(void)
 {
-	std::string p = getNickn() + " ---------- IRC ---------- ";
+	std::string p = getFullMask() + " ---------- IRC ---------- ";
 
 	if (chanOn != NULL) 
 	{

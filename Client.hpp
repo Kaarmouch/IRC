@@ -32,7 +32,7 @@ class Client {
 		std::string getNickn() const;  // Accesseur pour obtenir le descripteur de fichier
 		bool getPass() const;
 		Channel* getChanOn() const;
-
+		std::string getFullMask() const;
 
 		
 		std::string readMessage();     // Lire le message envoyé par le client
