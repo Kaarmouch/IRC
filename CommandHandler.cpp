@@ -3,7 +3,6 @@
 
 static bool requireArgs(Client* client, const std::vector<std::string>& words, size_t min, const std::string& usage) 
 {
-    // // Vérifie que le nombre d'arguments est suffisant et que l'argument requis n'est pas vide
     if (words.size() < min || words[min - 1].empty()) 
     {
         client->sendMessage("Usage: " + usage);
@@ -20,7 +19,6 @@ void CommandHandler::execute(Server& server, Client* client, const std::string& 
         return;
 
     std::string command = words[0];
-
     if (command == "NICK")
         handleNick(server, client, words);
     else if (command == "USER")
@@ -107,29 +105,30 @@ void CommandHandler::handleMode(Server& server, Client* client, const std::vecto
 	if (mode == "+o" || mode == "-o")
 		ModeOperator(server, client, chan, words);
 	else if (mode == "+i" || mode == "-i")
-		handleModeInvite(chan, mode, client);
+		ModeInvite(chan, mode, client);
 	else if (mode == "+t" || mode == "-t")
-		handleModeTopic(chan, mode, client);
-/*	else if (mode == "+k" || mode == "-k")
-		handleModeKey(chan, words, client);*/
+		ModeTopic(chan, mode, client);
+	else if (mode == "+k" || mode == "-k")
+		ModeKey(chan, words, client);
 	else if (mode == "+l" || mode == "-l")
-		handleModeLimit(chan, words, client);
+		ModeLimit(chan, words, client);
 	else
 		client->sendMessage("Unknown mode: " + mode);
         // AJOUTER -> Message help des commande mode dispognible [+o/-o] [+t/-t] etc....
 }
 
-void CommandHandler::handleModeLimit(Channel& chan, const std::vector<std::string>& word, Client* client)
+void CommandHandler::ModeLimit(Channel& chan, const std::vector<std::string>& word, Client* client)
 {
 	std::string msg1 = chan.getName() + " is now length-restricted (+l) : ";
 	std::string msg2 = chan.getName() + " is no longer length-restricted (-l)";
 	
 	if (word[2] == "-l")
-        {
-                chan.setMaxUsers(-1);
-                chan.sendAll(client, msg2);
+    {
+        chan.setMaxUsers(-1);
+        chan.sendAll(client, msg2);
 		return;
-        }
+    }
+
 	if (word[2] == "+l")
 	{
 		int limit;
@@ -139,13 +138,13 @@ void CommandHandler::handleModeLimit(Channel& chan, const std::vector<std::strin
 			return;
 		}
 		msg1 += word[3];
-                chan.setMaxUsers(limit);
-                chan.sendAll(client, msg1);
-        }
+            chan.setMaxUsers(limit);
+            chan.sendAll(client, msg1);
+    }
 }
 
 
-void CommandHandler::handleModeInvite(Channel& chan, const std::string& mode, Client* client)
+void CommandHandler::ModeInvite(Channel& chan, const std::string& mode, Client* client)
 {
     std::string msg1 = chan.getName() + " is now invit-restricted (+i)";
     std::string msg2 = chan.getName() + " is no longer invit-restricted (-i)";
@@ -204,7 +203,7 @@ void CommandHandler::ModeOperator(Server& server, Client* client, Channel& chan,
 	}
 }
 
-void CommandHandler::handleModeTopic(Channel& chan, const std::string& mode, Client* client)
+void CommandHandler::ModeTopic(Channel& chan, const std::string& mode, Client* client)
 {
     std::string msg1 = chan.getName() + " is now topic-restricted (+t)";
     std::string msg2 = chan.getName() + " is no longer topic-restricted (-t)";
@@ -221,6 +220,25 @@ void CommandHandler::handleModeTopic(Channel& chan, const std::string& mode, Cli
 	}
 }
 
+void CommandHandler::ModeKey(Channel& chan, const std::vector<std::string>& words, Client* client)
+{
+	if (words[2] == "+k")
+	{
+		if (words.size() < 4)
+		{
+			client->sendMessage("Usage: MODE <channel> +k <password>");
+			return;
+		}
+
+		chan.setPassword(words[3]);
+		client->sendMessage("Password set for channel " + chan.getName());
+	}
+	else if (words[2] == "-k")
+	{
+		chan.setPassword("");
+		client->sendMessage("Password removed for channel " + chan.getName());
+	}
+}
 void CommandHandler::handleNick(Server& server, Client* client, const std::vector<std::string>& words) 
 {
     if (!requireArgs(client, words, 2, "NICK <nickname>"))
@@ -249,7 +267,9 @@ void CommandHandler::handleJoin(Server& server, Client* client, const std::vecto
     if (!requireArgs(client, words, 2, "JOIN <#channel>"))
         return;
 
-    server.Join_Command(client, words[1]);
+	// Vérifie si mot de passe fourni en 3eme argument
+    std::string password = (words.size() >= 3) ? words[2] : "";
+    server.Join_Command(client, words[1], password);
 }
 
 void CommandHandler::handlePart(Server& server, Client* client, const std::vector<std::string>& words) 

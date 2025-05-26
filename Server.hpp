@@ -49,7 +49,7 @@ class Server
 		void acceptNewClient();
 
 		//Command
-		void Join_Command(Client* client, const std::string& channelName);
+		void Join_Command(Client* client, const std::string& channelName, const std::string& password);
 		void Part_Command(Client* client, const std::string& channelName);
 
 		void Topic_Command(Client* client, const std::vector<std::string>& args);

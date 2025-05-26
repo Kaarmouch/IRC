@@ -91,32 +91,7 @@ void Server::initializeServer()
 	server_pollfd.revents = 0;
 	poll_fds.push_back(server_pollfd);
 }
-/*
-// ne pas suprimer pour l'instant (seul back_up)
-void Server::sendPrompt(Client* clicli)
-{
-    std::string chan = clicli->getChanOn();
-    std::string p = clicli->getNickn() + " ---------- IRC ---------- [" + chan + "]";
-
-    if (chan != "No channel") 
-	{
-        std::map<std::string, Channel>::iterator it = channels.find(chan);
-        if (it != channels.end()) 
-		{
-            int opCount = it->second.getOperatorCount();
-			int memberCount = it->second.getMemberCount();
-           	std::ostringstream oss;
-			oss << " -> [Operators: " << opCount << " | Members: " << memberCount << " ]";
-			p += oss.str();
-        }
-    }
-
-    clicli->sendMessage(p);
-
-    if (!clicli->getPass())
-        clicli->sendMessage("Password :");
-}
-*/	
+	
 void Server::startListening() 
 {
 	while (true) 
@@ -279,48 +254,51 @@ void Server::handleClientData(int index)
 	}
 }
 
-void Server::Join_Command(Client* client, const std::string& channelName) 
+void Server::Join_Command(Client* client, const std::string& channelName, const std::string& password)
 {
+	if (!isValidChannelName(channelName)) 
+	{
+		client->sendMessage(":irc.server 476 " + client->getNickn() + " " + channelName + " :Invalid channel name");
+		return;
+	}
+	if (!isClientFree(client))
+	{
+		client->sendMessage(":irc.server 443 " + client->getNickn() + " " + channelName + " :You're already in a channel");
+		return;
+	}
 	std::map<std::string, Channel>::iterator it = channels.find(channelName);
 	std::string prompt = client->getNickn() + " joined : " + channelName;
 
-	if (!isValidChannelName(channelName)) 
+	// ----- Nouveau channel -----
+	if (it == channels.end()) 
 	{
-        client->sendMessage("Invalid channel name. Must start with # and not contain invalid characters.");
-        return;
-    }
-    //Verif si le client est déjà dans un channel
-    if (!isClientFree(client)) //client->getChanOn != "No channel"
-	{
-        client->sendMessage("You are already in a channel. Use PART first.");
-        return;
-    }
-    if (it == channels.end()) 
-    {
-        std::pair<std::map<std::string, Channel>::iterator, bool> result =
-            channels.insert(std::make_pair(channelName, Channel(channelName)));
-        
+		// Crée le channel sans mot de passe
+		Channel newChan(channelName);
+		std::pair<std::map<std::string, Channel>::iterator, bool> result =
+			channels.insert(std::make_pair(channelName, newChan));
+
 		Channel& newChannel = result.first->second;
-        newChannel.addMember(client, true);
-        client->setChanOn(&newChannel);
-		// Mise à jour du topic pour prompt principal client
-        client->sendMessage("You created and joined " + channelName);
-        std::cout << client->getNickn() << " created and joined channel " << channelName << std::endl;
-    } 
-    else 
-    {
-        Channel& existing_channel = it->second;
+		newChannel.addMember(client, true);  // créateur = opérateur
+		client->setChanOn(&newChannel);
+		client->sendMessage("You created and joined " + channelName);
+		std::cout << client->getNickn() << " created and joined channel " << channelName << std::endl;
+		return;
+	}
 
-        if (existing_channel.addMember(client)) 
-        {
-            client->setChanOn(&existing_channel);
-            client->sendMessage("You joined " + channelName);
-            std::cout << client->getNickn() << " joined channel " << channelName << std::endl;
-
-			std::string joinMsg = client->getNickn() + " has joined the channel.";
-			existing_channel.sendAll(client, prompt);
-        } 
-    }
+	// ----- Channel existant -----
+	Channel& existing_channel = it->second;
+	if (!existing_channel.getPassword().empty() && !existing_channel.checkPassword(password))
+	{
+		client->sendMessage("Wrong channel password.");
+		return;
+	}
+	if (existing_channel.addMember(client)) 
+	{
+		client->setChanOn(&existing_channel);
+		client->sendMessage("You joined " + channelName);
+		std::cout << client->getNickn() << " joined channel " << channelName << std::endl;
+		existing_channel.sendAll(client, prompt);
+	}
 }
 
 void Server::Part_Command(Client* client, const std::string& channelName)

@@ -26,10 +26,11 @@ private:
 
     static void handleMode(Server& server, Client* client, const std::vector<std::string>& words);
     static void ModeOperator(Server& server, Client* client, Channel& chan, const std::vector<std::string>& words);
-    static void handleModeTopic(Channel& chan, const std::string& mode, Client* client);
-    static void handleModeLimit(Channel& chan, const std::vector<std::string>& word, Client* client);
-    static void handleModeInvite(Channel& chan, const std::string& mode, Client* client);
-static void handlePrivate(Server& server, Client* client, const std::vector<std::string>& words);
+    static void ModeTopic(Channel& chan, const std::string& mode, Client* client);
+    static void ModeLimit(Channel& chan, const std::vector<std::string>& word, Client* client);
+    static void ModeInvite(Channel& chan, const std::string& mode, Client* client);
+    static void ModeKey(Channel& chan, const std::vector<std::string>& words, Client* client);
+    static void handlePrivate(Server& server, Client* client, const std::vector<std::string>& words);
 };
 
 #endif

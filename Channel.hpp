@@ -23,7 +23,7 @@ private:
     bool inviteOnly;                                // +i -> [Channel sur invitation]
     bool topicRestricted;                           // +t -> operateur peuvent changer le topic
     std::string password;                           // +k -> Mot de pase channel
-    bool hasPassword;                               // Pour vérifier si une clé est définie
+    //bool hasPassword;                               // Pour vérifier si une clé est définie
     int maxUsers;                                   // Mode +l : Limite d'utilisateurs
     bool limitSet;		// si limitSet est la pour savoir si le mode +l est mis, on peut juste inititer maxUsers a -1 et consciderer ca comme non set, same pour pasword ?
 
@@ -37,15 +37,16 @@ public:
     Channel& operator=(const Channel& other);
     ~Channel();
 
-    // Getters / Setters
-    std::string getName() const;                                                     
+    // Getters
+    std::map<Client*, bool> getMembers();
+    std::string getName() const;   
+    std::string getTopic() const;
+    std::string getPassword() const;                                             
     bool getIOnly() const;
     bool getRTopic() const;
     int getMaxUsers() const;
-    std::string getPassword() const;
-    std::string getTopic() const;
     int getOperatorCount() const;
-
+    // Setters
     void setTopic(const std::string& newTopic);
     void setIOnly(const bool mode);
     void setRTopic(const bool mode);
@@ -68,7 +69,6 @@ public:
 
     // Utilitaires
     int getMemberCount() const;
-    std::map<Client*, bool> getMembers();
     bool checkPassword(const std::string& inputPassword) const;
     
 };
