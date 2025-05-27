@@ -245,8 +245,8 @@ void CommandHandler::handleNick(Server& server, Client* client, const std::vecto
     std::string newNick = words[1];
     if (server.isNickOk(client, newNick)) 
     {
-	    std::string oldNick = client->getNickn();
-	    client->sendMessage(oldNick +" changed his nickname to : " + newNick);
+	    std::string oldNick = ":"+ client->getFullMask();
+	    client->sendMessage(oldNick +" NICK : " + newNick);
 	    client->setNickname(newNick);
     }
 }

@@ -314,35 +314,33 @@ void Server::Part_Command(Client* client, const std::string& channelName)
 	std::string prompt = client->getNickn() + " left : " + channelName;
 
 	// est-il dans un channel + verif correspond-il à celui où il est réellement
-    if (!canPartChannel(client, channelName))
-        return;
-    // si channel n’existe pas dans le serveur
+	if (!canPartChannel(client, channelName))
+		return;
+	// si channel n’existe pas dans le serveur
 	if (it == channels.end()) 
-    {
-        client->sendMessage("Channel " + channelName + " not found.");
-        client->setChanOn(NULL);
-        return;
-    }
-    Channel& existing_channel = it->second;
-    if (existing_channel.removeMember(client)) 
-    {
-        client->sendMessage("You left " + channelName);
-        std::cout << client->getNickn() << " left channel " << channelName << std::endl;
-        client->setChanOn(NULL);
+	{
+		client->sendMessage("Channel " + channelName + " not found.");
+		client->setChanOn(NULL);
+		return;
+	}
+	Channel& existing_channel = it->second;
+	if (existing_channel.removeMember(client)) 
+	{
+		std::string partMsg = ":"+ client->getFullMask()+" PRIVMSG "+ channelName+" PART " + channelName +":Leaving";
+		client->sendMessage(partMsg);
+		std::cout << client->getNickn() << " left channel " << channelName << std::endl;
+		client->setChanOn(NULL);
 		// Mise à jour du topic pour prompt principal client
-
-		std::string partMsg = client->getNickn() + " has left the channel.";
 		existing_channel.sendAll(client, prompt);
-
-        // Plus personne dans le channel = suprimer de map Channels + log
+		// Plus personne dans le channel = suprimer de map Channels + log
 		if (existing_channel.isEmpty()) 
-        {
-            channels.erase(it);
-            std::cout << "Channel " << channelName << " has been deleted (empty)." << std::endl;
-        }
-    }
-    else 
-        client->sendMessage("You were not a member of " + channelName);
+		{
+			channels.erase(it);
+			std::cout << "Channel " << channelName << " has been deleted (empty)." << std::endl;
+		}
+	}
+	else 
+		client->sendMessage("You were not a member of " + channelName);
 }
 
 void Server::Topic_Command(Client* client, const std::vector<std::string>& args) 
