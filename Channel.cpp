@@ -143,7 +143,7 @@ void Channel::sendList(Client *clin, const std::string& serverName)
 
 
 
-void	Channel::sendAll(Client *cli, std::string& msg)
+void	Channel::sendAll(Client *cli,const std::string& msg)
 {
 	std::string name = cli->getNickn();
 	for (std::map<Client*, bool>::const_iterator it = members.begin(); it != members.end(); ++it) 
@@ -156,27 +156,6 @@ void	Channel::sendAll(Client *cli, std::string& msg)
 
 	}
 }
-void Channel::sendListToAll(const std::string& serverName)
-{
-	for (std::map<Client*, bool>::const_iterator it = members.begin(); it != members.end(); ++it)
-	{
-		Client* client = it->first;
-		std::string list;
-
-		for (std::map<Client*, bool>::const_iterator jt = members.begin(); jt != members.end(); )
-		{
-			if (jt->second)
-				list += "@";
-			list += jt->first->getNickn();
-			if (++jt != members.end())
-				list += " ";
-		}
-
-		client->sendMessage(":" + serverName + " 353 " + client->getNickn() + " = " + this->name + " :" + list);
-		client->sendMessage(":" + serverName + " 366 " + client->getNickn() + " " + this->name + " :End of /NAMES list.");
-	}
-}
-
 
 bool Channel::promoteToOperator(Client* client)
 {

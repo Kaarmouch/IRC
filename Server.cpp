@@ -175,7 +175,7 @@ void Server::disconnectClient(int fd)
 bool Server::isNickOk(Client* cli, std::string& str)
 {
 	std::string prompt = "Bad Nickname !";
-	std::string prompti = "Already used nickname !";
+	std::string prompti = "server 433 * "+str+" :Nickname is already in use";
 	
 	if (str.empty() ||str == "" || str.find(",") != std::string::npos || str.find("*") != std::string::npos || str.find("?") != std::string::npos 
 			|| str.find("!") != std::string::npos || str.find("@") != std::string::npos || str.find(".") != std::string::npos 
@@ -304,15 +304,13 @@ void Server::Join_Command(Client* client, const std::string& channelName, const 
 	client->setChanOn(channel);
 
 	// 1. Envoyer au client qui rejoint
-	client->sendMessage(":" + client->getFullMask() + " JOIN :" + channelName);
 	client->sendMessage(":" + serverName + " 332 " + client->getNickn() + " " + channelName + " :" + channel->getTopic());
 	channel->sendList(client, serverName);
 
 	// 2. Notifier les autres du JOIN
-	channel->broadcast(client->getFullMask() + " JOIN :" + channelName, client);
+	channel->sendAll(client, client->getFullMask() + " JOIN :" + channelName);
 	
 	// 3. Mettre à jour les listes 353/366 pour tout le monde → rond vert garanti
-	channel->sendListToAll(serverName);
 }
 
 void Server::Part_Command(Client* client, const std::string& channelName)

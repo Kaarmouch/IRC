@@ -59,9 +59,8 @@ public:
     bool isEmpty() const;                                              // return true si plus de membre dans un channel
     bool isMember(Client* client) const;                               // Savoir si il est deja dans un channel
     bool isOperator(Client* client) const;
-    void sendAll(Client *cli, std::string& msg);
+    void sendAll(Client *cli, const std::string& msg);
     void sendList(Client *clin, const std::string& serverName);
-    void sendListToAll(const std::string& serverName);
     // Modes
     
     bool promoteToOperator(Client* client);                 // +o
