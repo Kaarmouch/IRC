@@ -124,20 +124,23 @@ bool Channel::isOperator(Client* client) const
     return false;
 }
 
-void    Channel::sendList(Client *cli)
+void Channel::sendList(Client *clin, const std::string& serverName)
 {
 	std::string list;
 
-        for (std::map<Client*, bool>::const_iterator it = members.begin(); it != members.end(); ++it)
-        {
-		list += (it->first)->getNickn();
-		list += " ";
+	for (std::map<Client*, bool>::const_iterator it = members.begin(); it != members.end(); )
+	{
+		if (it->second)
+			list += "@";
+		list += it->first->getNickn();
+		if (++it != members.end())
+			list += " ";
+	}
 
-        }
-	cli->sendMessage(":localhost 353 " + cli->getNickn() + " = " + this->name + " :" + list);
-	cli->sendMessage(":localhost 366 " + cli->getNickn() + " " + this->name + " :End of /NAMES list.");
-
+	clin->sendMessage(":" + serverName + " 353 " + clin->getNickn() + " = " + this->name + " :" + list);
+	clin->sendMessage(":" + serverName + " 366 " + clin->getNickn() + " " + this->name + " :End of /NAMES list.");
 }
+
 
 
 void	Channel::sendAll(Client *cli, std::string& msg)
@@ -153,6 +156,27 @@ void	Channel::sendAll(Client *cli, std::string& msg)
 
 	}
 }
+void Channel::sendListToAll(const std::string& serverName)
+{
+	for (std::map<Client*, bool>::const_iterator it = members.begin(); it != members.end(); ++it)
+	{
+		Client* client = it->first;
+		std::string list;
+
+		for (std::map<Client*, bool>::const_iterator jt = members.begin(); jt != members.end(); )
+		{
+			if (jt->second)
+				list += "@";
+			list += jt->first->getNickn();
+			if (++jt != members.end())
+				list += " ";
+		}
+
+		client->sendMessage(":" + serverName + " 353 " + client->getNickn() + " = " + this->name + " :" + list);
+		client->sendMessage(":" + serverName + " 366 " + client->getNickn() + " " + this->name + " :End of /NAMES list.");
+	}
+}
+
 
 bool Channel::promoteToOperator(Client* client)
 {
@@ -195,4 +219,14 @@ int Channel::getMemberCount() const
 std::map<Client*, bool> Channel::getMembers()
 {
     return this->members;
+}
+
+
+void Channel::broadcast(const std::string& message, Client* exclude)
+{
+	for (std::map<Client*, bool>::const_iterator it = members.begin(); it != members.end(); ++it)
+	{
+		if (it->first != exclude)
+			it->first->sendMessage(":" + message);
+	}
 }

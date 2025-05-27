@@ -302,10 +302,16 @@ void Server::Join_Command(Client* client, const std::string& channelName, const 
 
 	client->setChanOn(channel);
 
-	// Messages envoyés au client
+	// 1. Envoyer au client qui rejoint
 	client->sendMessage(":" + client->getFullMask() + " JOIN :" + channelName);
 	client->sendMessage(":" + serverName + " 332 " + client->getNickn() + " " + channelName + " :" + channel->getTopic());
-	channel->sendList(client);
+	channel->sendList(client, serverName);
+
+	// 2. Notifier les autres du JOIN
+	channel->broadcast(client->getFullMask() + " JOIN :" + channelName, client);
+	
+	// 3. Mettre à jour les listes 353/366 pour tout le monde → rond vert garanti
+	channel->sendListToAll(serverName);
 }
 
 void Server::Part_Command(Client* client, const std::string& channelName)

@@ -60,7 +60,8 @@ public:
     bool isMember(Client* client) const;                               // Savoir si il est deja dans un channel
     bool isOperator(Client* client) const;
     void sendAll(Client *cli, std::string& msg);
-    void    sendList(Client *cli);    
+    void sendList(Client *clin, const std::string& serverName);
+    void sendListToAll(const std::string& serverName);
     // Modes
     
     bool promoteToOperator(Client* client);                 // +o
@@ -71,6 +72,8 @@ public:
     int getMemberCount() const;
     bool checkPassword(const std::string& inputPassword) const;
     
+
+    void broadcast(const std::string& message, Client* exclude);
 };
 
 #endif
