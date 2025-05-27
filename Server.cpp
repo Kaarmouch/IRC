@@ -147,14 +147,15 @@ void Server::disconnectClient(int fd)
 {
 	std::cout << "Disconnecting client FD: " << fd << std::endl;
 	close(fd);
+	
 
-	// Supprimer le client du vecteur clients
-	// Appeler une Channel::fonction qui libere pointeur client (et reorganise les operators ?)
-	//recup chann avec le fd ? donner directement &Client a la fonction pour link avec le channel
 	for (std::vector<Client*>::iterator it = clients.begin(); it != clients.end(); ++it)
 	{
 		if ((*it)->getFd() == fd)
 		{
+			Channel* C = (*it)->getChanOn();
+			if (C)
+				C->removeMember((*it));
 			delete *it; // lib memory
 			clients.erase(it); //sup vector pointr
 			break;
