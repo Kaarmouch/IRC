@@ -123,6 +123,23 @@ bool Channel::isOperator(Client* client) const
         return it->second;
     return false;
 }
+
+void    Channel::sendList(Client *cli)
+{
+	std::string list;
+
+        for (std::map<Client*, bool>::const_iterator it = members.begin(); it != members.end(); ++it)
+        {
+		list += (it->first)->getNickn();
+		list += " ";
+
+        }
+	cli->sendMessage(":localhost 353 " + cli->getNickn() + " = " + this->name + " :" + list);
+	cli->sendMessage(":localhost 366 " + cli->getNickn() + " " + this->name + " :End of /NAMES list.");
+
+}
+
+
 void	Channel::sendAll(Client *cli, std::string& msg)
 {
 	std::string name = cli->getNickn();

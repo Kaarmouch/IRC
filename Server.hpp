@@ -37,7 +37,7 @@ class Server
 
 		void disconnectClient(int fd);
 		void handleClientData(int index);
-		void handleMessage(Client* client, std::string& str);
+		void handleMessage(Client* client,const std::string& str);
 		
 		//getter
 		std::map<std::string, Channel>& getChannels();

@@ -38,7 +38,7 @@ void CommandHandler::execute(Server& server, Client* client, const std::string& 
     else if (command == "MODE")
 	    handleMode(server, client, words);
     else
-        server.handleMessage(client, command);
+        server.handleMessage(client, str);
 }
 
 void CommandHandler::handlePrivate(Server& server, Client* client, const std::vector<std::string>& words)
@@ -48,11 +48,10 @@ void CommandHandler::handlePrivate(Server& server, Client* client, const std::ve
 		 client->sendMessage("Nothing to send");
 		 return;
 	 }
-	 std::string message = client->getNickn() + " said :";
-	 for (size_t i = 2; i < words.size(); ++i)
+	 std::string message = ":" + client->getFullMask() ;
+	 for (size_t i = 0; i < words.size(); ++i)
 	 {
-		 if (i > 2)
-			 message += " ";
+		 message += " ";
 		 message += words[i];
 	 }
 	 if (words[1][0] == '#')

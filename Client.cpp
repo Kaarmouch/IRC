@@ -66,7 +66,6 @@ std::string Client::readMessage()
 	}
 
 	buffer[bytes] = '\0';
-	//buff += buffer;
 	msg = buffer;
 	
 	return msg;

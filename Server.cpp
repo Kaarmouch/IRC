@@ -197,7 +197,7 @@ bool Server::isNickOk(Client* cli, std::string& str)
 }
 
 
-void Server::handleMessage(Client* cli, std::string& msg)
+void Server::handleMessage(Client* cli,const std::string& msg)
 {	
 	Channel* chanOn = cli->getChanOn();
 
@@ -207,36 +207,40 @@ void Server::handleMessage(Client* cli, std::string& msg)
 	}
 	else
 	{
-		std::string m = cli->getNickn() + " said : " + msg;
+		std::string m = ":" + cli->getFullMask() + " PRIVMSG " + chanOn->getName() +" "+ msg;
 		chanOn->sendAll(cli, m);
 	}
 }
 
-void Server::handleClientData(int index) 
+void Server::handleClientData(int index)
 {
 	int fd = poll_fds[index].fd;
+	int flag_out = 0;
 	std::string str = "";
 
 	for (std::vector<Client*>::iterator it = clients.begin(); it != clients.end(); ++it)
 	{
-		if ((*it)->getFd() == fd) 
+		if ((*it)->getFd() == fd)
 		{
 			Client * cli = *it;
 			str = cli->readMessage();
 			std::cout << "Received from "<< cli->getNickn() << " " <<cli->getPass() << " : "<< str;
 			if (str == "")
 			{
+				std::cout << "empty prompt" << std::endl;
 				disconnectClient(fd);
 				return;
 			}
 			std::vector<std::string> messages = splitByCRLF(str);
 			for (size_t i = 0; i < messages.size(); i++)
 			{
+				if (flag_out)
+					break;
 				std::string msg = messages[i];
 				if (!(cli->getPass()))
 				{
 					std::string pass = get_pass(msg);
-					std::cout << "pass " << "'" <<pass<< "'" << std::endl; 
+					std::cout << "pass " << "'" <<pass<< "'" << std::endl;
 					if (pass == password)
 					{
 						cli->sendMessage("You are now authentificated");
@@ -246,59 +250,62 @@ void Server::handleClientData(int index)
 						cli->sendMessage("Wrong password");
 				}
 				else
+				{
 					CommandHandler::execute(*this, cli, msg);
+					if (msg == "QUITE" || msg == "QUIT" || msg == "QUIT :Leaving")
+						flag_out = 1;
+				}
 			}
-			cli->prompt();
+			if (!flag_out)
+				cli->prompt();
 			break;
 		}
 	}
 }
 
+
 void Server::Join_Command(Client* client, const std::string& channelName, const std::string& password)
 {
-	if (!isValidChannelName(channelName)) 
+	(void)password;
+	std::string serverName = "localhost"; // Nom logique du serveur
+	std::map<std::string, Channel>::iterator it = channels.find(channelName);
+	std::string prompt = client->getNickn() + " joined : " + channelName;
+
+	if (!isValidChannelName(channelName))
 	{
-		client->sendMessage(":irc.server 476 " + client->getNickn() + " " + channelName + " :Invalid channel name");
+		client->sendMessage("Invalid channel name. Must start with # and not contain invalid characters.");
 		return;
 	}
 	if (!isClientFree(client))
 	{
-		client->sendMessage(":irc.server 443 " + client->getNickn() + " " + channelName + " :You're already in a channel");
+		client->sendMessage("You are already in a channel. Use PART first.");
 		return;
 	}
-	std::map<std::string, Channel>::iterator it = channels.find(channelName);
-	std::string prompt = client->getNickn() + " joined : " + channelName;
 
-	// ----- Nouveau channel -----
-	if (it == channels.end()) 
+	Channel* channel = NULL;
+
+	if (it == channels.end())
 	{
-		// Crée le channel sans mot de passe
-		Channel newChan(channelName);
 		std::pair<std::map<std::string, Channel>::iterator, bool> result =
-			channels.insert(std::make_pair(channelName, newChan));
-
-		Channel& newChannel = result.first->second;
-		newChannel.addMember(client, true);  // créateur = opérateur
-		client->setChanOn(&newChannel);
-		client->sendMessage("You created and joined " + channelName);
+			channels.insert(std::make_pair(channelName, Channel(channelName)));
+		channel = &result.first->second;
+		channel->addMember(client, true);
 		std::cout << client->getNickn() << " created and joined channel " << channelName << std::endl;
-		return;
+	}
+	else
+	{
+		channel = &it->second;
+		if (!channel->addMember(client))
+			return;
+		std::cout << client->getNickn() << " joined channel " << channelName << std::endl;
 	}
 
-	// ----- Channel existant -----
-	Channel& existing_channel = it->second;
-	if (!existing_channel.getPassword().empty() && !existing_channel.checkPassword(password))
-	{
-		client->sendMessage("Wrong channel password.");
-		return;
-	}
-	if (existing_channel.addMember(client)) 
-	{
-		client->setChanOn(&existing_channel);
-		client->sendMessage("You joined " + channelName);
-		std::cout << client->getNickn() << " joined channel " << channelName << std::endl;
-		existing_channel.sendAll(client, prompt);
-	}
+	client->setChanOn(channel);
+
+	// Messages envoyés au client
+	client->sendMessage(":" + client->getFullMask() + " JOIN :" + channelName);
+	client->sendMessage(":" + serverName + " 332 " + client->getNickn() + " " + channelName + " :" + channel->getTopic());
+	channel->sendList(client);
 }
 
 void Server::Part_Command(Client* client, const std::string& channelName)

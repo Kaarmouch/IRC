@@ -60,7 +60,7 @@ public:
     bool isMember(Client* client) const;                               // Savoir si il est deja dans un channel
     bool isOperator(Client* client) const;
     void sendAll(Client *cli, std::string& msg);
-    
+    void    sendList(Client *cli);    
     // Modes
     
     bool promoteToOperator(Client* client);                 // +o
