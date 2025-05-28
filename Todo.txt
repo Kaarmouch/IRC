@@ -28,6 +28,7 @@ SOON OK :
 
 NOT OK :
 
+- Limpression que quand le nick ou autre modifier, hexchat ne capte plus trop les mssg server
 
 - INVITE - Inviter un client au channel
 
