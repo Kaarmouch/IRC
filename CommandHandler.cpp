@@ -13,32 +13,58 @@ static bool requireArgs(Client* client, const std::vector<std::string>& words, s
 
 void CommandHandler::execute(Server& server, Client* client, const std::string& str) 
 {
-    std::vector<std::string> words = splitOnSpace(str);
-    
-    if (words.empty())
-        return;
+	std::vector<std::string> words = splitOnSpace(str);
 
-    std::string command = words[0];
-    if (command == "NICK")
-        handleNick(server, client, words);
-    else if (command == "USER")
-        handleUser(server, client, words);
-    else if (command == "JOIN")
-        handleJoin(server, client, words);
-    else if (command == "PART")
-        handlePart(server, client, words);
-    else if (command == "TOPIC")
-        handleTopic(server, client, words);
-    else if (command == "HELP")
-        handleHelp(client);
-    else if (command == "PRIVMSG")
-	    handlePrivate(server, client, words);
-    else if (command == "QUIT")
-        server.disconnectClient(client->getFd());
-    else if (command == "MODE")
-	    handleMode(server, client, words);
-    else
-        server.handleMessage(client, str);
+	if (words.empty())
+		return;
+
+	std::string command = words[0];
+	if (command == "NICK")
+		handleNick(server, client, words);
+	else if (command == "USER")
+		handleUser(server, client, words);
+	else if (command == "JOIN")
+		handleJoin(server, client, words);
+	else if (command == "PART")
+		handlePart(server, client, words);
+	else if (command == "TOPIC")
+		handleTopic(server, client, words);
+	else if (command == "HELP")
+		handleHelp(client);
+	else if (command == "HELP")
+		handleHelp(client);
+	else if (command == "KICK")
+		handleKick(server, client, words);
+	else if (command == "PRIVMSG")
+		handlePrivate(server, client, words);
+	else if (command == "QUIT")
+		server.disconnectClient(client->getFd());
+	else if (command == "MODE")
+		handleMode(server, client, words);
+	else
+		server.handleMessage(client, str);
+}
+void CommandHandler::handleKick(Server& s,Client* client, std::vector<std::string>& words)
+{
+	if (!requireArgs(client, words, 3, "KICK #channel target_nickname"))
+		return;
+	Channel *chan = client->getChanOn();
+	Client* target = s.findClientByNick(words[2]);
+	if (!chan || chan->getName() != words[1] || !target)
+	{
+		client->sendMessage(":localhost :Misspelling problem");
+		return;
+	}
+	if (chan->isOperator(client))
+	{
+		target->setChanOn(NULL);
+		chan->removeMember(target);
+		std::string reason = getReason(words);
+		chan->sendAll(client, ":"+client->getFullMask()+" KICK "+chan->getName()+" "+words[2]+" :"+reason);
+		client->sendMessage(":"+client->getFullMask()+" KICK "+chan->getName()+" "+words[2]+" :"+reason);
+		target->sendMessage(":"+client->getFullMask()+" KICK "+chan->getName()+" "+words[2]+" :"+reason);
+		target->prompt();
+	}
 }
 
 void CommandHandler::handlePrivate(Server& server, Client* client, const std::vector<std::string>& words)

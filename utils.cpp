@@ -54,6 +54,23 @@ std::vector<std::string> splitByCRLF(const std::string& input)
 	return result;
 }
 
+std::string getReason(const std::vector<std::string>& words)
+{
+	std::string r;
+	if (words.size() < 4 || words[3].empty())
+		return "No reason";
+	for (size_t i = 3;i < words.size(); i++)
+	{
+		if (i == 4 && words[i][0] == ':')
+			r += words[i].substr(1);
+		else
+			r += words[i];
+		if ((i + 1) != words.size())
+			r += " ";
+	}
+	return r;
+}
+
 std::string trim(const std::string& str) {
 	size_t first = str.find_first_not_of(" \t\r\n");
 	if (first == std::string::npos) return "";
