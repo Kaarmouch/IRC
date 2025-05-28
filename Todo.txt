@@ -1,0 +1,34 @@
+HEXCHAT.info
+
+Voici un .txt qui indique les prompte fonctionnels avec HEXCHAT et les non fonctionnels
+La categorie "OK" indique un prompt valider et tester rigoureusement
+
+OK :
+
+- Pouvoir vous authentifier, définir un nickname, un username, re-
+joindre un channel, envoyer et recevoir des messages privés, avec votre client
+de référence.
+
+- Tous les messages envoyés par un client dans un channel doivent être transmis
+à tous les clients ayant rejoint ce channel.
+
+- Avoir des operators et des utilisateurs basiques.
+
+SOON OK :
+
+- TOPIC - Modifier 
+
+- TOPIC - afficher le thème du channel
+
+NOT OK :
+
+- KICK - Ejecter un client du channel
+
+- INVITE - Inviter un client au channel
+
+- MODE 
+	-i
+	-t
+	-k
+	-o
+	-l

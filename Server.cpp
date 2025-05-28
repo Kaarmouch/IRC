@@ -303,14 +303,14 @@ void Server::Join_Command(Client* client, const std::string& channelName, const 
 
 	client->setChanOn(channel);
 
-	// 1. Envoyer au client qui rejoint
+	// 1 Notifier les autres du JOIN
+	channel->sendAll(client, ":"+client->getFullMask() + " JOIN :" + channelName);
+	//  Envoyer au client qui rejoint
+	client->sendMessage(":"+client->getFullMask() + " JOIN :" + channelName);
 	client->sendMessage(":" + serverName + " 332 " + client->getNickn() + " " + channelName + " :" + channel->getTopic());
+	//Mettre à jour les listes 353/366 pour tout le monde → rond vert garanti
 	channel->sendList(client, serverName);
-
-	// 2. Notifier les autres du JOIN
-	channel->sendAll(client, client->getFullMask() + " JOIN :" + channelName);
 	
-	// 3. Mettre à jour les listes 353/366 pour tout le monde → rond vert garanti
 }
 
 void Server::Part_Command(Client* client, const std::string& channelName)
@@ -378,9 +378,9 @@ void Server::displayTopic(Client* client, Channel& chan)
 {
 	const std::string& topic = chan.getTopic();
 	if (topic.empty()) 
-		client->sendMessage("No topic is set");
+		client->sendMessage(":localhost 332 "+client->getNickn()+ " "+chan.getName()+ " :No topic is set");
 	else
-		client->sendMessage("topic : " + topic);
+		client->sendMessage(":localhost 332 "+client->getNickn()+ " "+chan.getName()+" " + topic);
 }
 
 void Server::setupTopic(Client* client, Channel& chan, const std::vector<std::string>& args, const std::string& channelName)
@@ -399,7 +399,7 @@ void Server::setupTopic(Client* client, Channel& chan, const std::vector<std::st
 			newTopic += " ";
 	}
 	chan.setTopic(newTopic);
-	std::string msg = client->getNickn() + " -> " + channelName + " ADD TOPIC : " + newTopic;
+	std::string msg =":"+client->getFullMask() + " TOPIC " + channelName + newTopic;
 	chan.sendAll(client, msg);
 
 }
