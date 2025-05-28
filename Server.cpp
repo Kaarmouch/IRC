@@ -331,12 +331,12 @@ void Server::Part_Command(Client* client, const std::string& channelName)
 	Channel& existing_channel = it->second;
 	if (existing_channel.removeMember(client)) 
 	{
-		std::string partMsg = ":"+ client->getFullMask()+" PRIVMSG "+ channelName+" PART " + channelName +":Leaving";
+		std::string partMsg = ":"+ client->getFullMask()+" PART " + channelName +" : Leaving";
 		client->sendMessage(partMsg);
 		std::cout << client->getNickn() << " left channel " << channelName << std::endl;
 		client->setChanOn(NULL);
 		// Mise à jour du topic pour prompt principal client
-		existing_channel.sendAll(client, prompt);
+		existing_channel.sendAll(client, partMsg);
 		// Plus personne dans le channel = suprimer de map Channels + log
 		if (existing_channel.isEmpty()) 
 		{
