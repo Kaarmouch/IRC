@@ -296,6 +296,11 @@ void Server::Join_Command(Client* client, const std::string& channelName, const 
 	else
 	{
 		channel = &it->second;
+		if (!channel->checkPassword(password))
+		{
+			std::cout << "wrong pass tried by "+client->getNickn()+" "+password<<std::cout;
+			return;
+		}
 		if (!channel->addMember(client))
 			return;
 		std::cout << client->getNickn() << " joined channel " << channelName << std::endl;

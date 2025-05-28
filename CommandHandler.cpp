@@ -144,15 +144,15 @@ void CommandHandler::handleMode(Server& server, Client* client, const std::vecto
 
 void CommandHandler::ModeLimit(Channel& chan, const std::vector<std::string>& word, Client* client)
 {
-	std::string msg1 = chan.getName() + " is now length-restricted (+l) : ";
-	std::string msg2 = chan.getName() + " is no longer length-restricted (-l)";
-	
+	std::string msg = ":"+client->getFullMask() +" MODE "+ chan.getName()+" "+ word[2];
+
 	if (word[2] == "-l")
-    {
-        chan.setMaxUsers(-1);
-        chan.sendAll(client, msg2);
+	{
+		chan.setMaxUsers(-1);
+		chan.sendAll(client, msg);
+		client->sendMessage(msg);
 		return;
-    }
+	}
 
 	if (word[2] == "+l")
 	{
@@ -162,34 +162,29 @@ void CommandHandler::ModeLimit(Channel& chan, const std::vector<std::string>& wo
 			client->sendMessage("Usage : mode +l number > 0");
 			return;
 		}
-		msg1 += word[3];
-            chan.setMaxUsers(limit);
-            chan.sendAll(client, msg1);
-    }
+		msg += " " + word[3];
+		chan.setMaxUsers(limit);
+		chan.sendAll(client, msg);
+		client->sendMessage(msg);
+	}
 }
 
 
 void CommandHandler::ModeInvite(Channel& chan, const std::string& mode, Client* client)
 {
-    std::string msg1 = chan.getName() + " is now invit-restricted (+i)";
-    std::string msg2 = chan.getName() + " is no longer invit-restricted (-i)";
 
+	std::string msg = ":"+client->getFullMask()+" MODE "+chan.getName() + " "+mode;
         if (mode == "+i")
-        {
                 chan.setIOnly(true);
-                chan.sendAll(client, msg1);
-        }
         else if (mode == "-i")
-        {
                 chan.setIOnly(false);
-                chan.sendAll(client, msg2);
-        }
+	chan.sendAll(client, msg);
+	client->sendMessage(msg);
 }
 
 
 void CommandHandler::ModeOperator(Server& server, Client* client, Channel& chan, const std::vector<std::string>& words)
 {
-    // verif nickname
 	if (words.size() < 4)
 	{
 		client->sendMessage("Usage: MODE <channel> [+o/-o] <nickname>");
@@ -197,21 +192,19 @@ void CommandHandler::ModeOperator(Server& server, Client* client, Channel& chan,
 	}
 	const std::string& Nick = words[3];
 	Client* target = server.findClientByNick(Nick);
-
-    std::string msg1 = Nick + " is now an operator.";
-    std::string msg2 = Nick + " is no longer an operator.";
-    std::string msg3 = Nick + " is already an operator.";
 	if (!target || !chan.isMember(target))
 	{
 		client->sendMessage("User not in channel");
 		return;
 	}
+	std::string msg = ":"+client->getFullMask()+" MODE "+chan.getName()+" "+words[2]+" "+target->getNickn() ;
 	if (words[2] == "+o")
 	{
 		if (!chan.isOperator(target))
 		{
 			chan.promoteToOperator(target);
-			chan.sendAll(client, msg1);
+			chan.sendAll(client, msg);
+			client->sendMessage(msg);
 		}
 		else
 			client->sendMessage(Nick + " is already an operator.");
@@ -221,32 +214,29 @@ void CommandHandler::ModeOperator(Server& server, Client* client, Channel& chan,
 		if (chan.isOperator(target))
 		{
 			chan.demoteOperator(target);
-			chan.sendAll(client, msg1);
+			chan.sendAll(client, msg);
+			client->sendMessage(msg);
 		}
 		else
-            chan.sendAll(client, msg2);
+			client->sendMessage(Nick + " is already a non operator.");
 	}
 }
 
 void CommandHandler::ModeTopic(Channel& chan, const std::string& mode, Client* client)
 {
-    std::string msg1 = chan.getName() + " is now topic-restricted (+t)";
-    std::string msg2 = chan.getName() + " is no longer topic-restricted (-t)";
+	std::string msg = ":"+client->getFullMask()+" MODE "+chan.getName() + " "+mode;
 
 	if (mode == "+t")
-	{
 		chan.setRTopic(true);
-		chan.sendAll(client, msg1);
-	}
 	else if (mode == "-t")
-	{
 		chan.setRTopic(false);
-		chan.sendAll(client, msg2);
-	}
+	chan.sendAll(client, msg);
+	client->sendMessage(msg);
 }
 
 void CommandHandler::ModeKey(Channel& chan, const std::vector<std::string>& words, Client* client)
 {
+	std::string msg = ":"+client->getFullMask()+" MODE "+chan.getName() +" "+words[2];
 	if (words[2] == "+k")
 	{
 		if (words.size() < 4)
@@ -256,12 +246,15 @@ void CommandHandler::ModeKey(Channel& chan, const std::vector<std::string>& word
 		}
 
 		chan.setPassword(words[3]);
-		client->sendMessage("Password set for channel " + chan.getName());
+		msg +=  " "+words[3];
+		chan.sendAll(client, msg);
+		client->sendMessage(msg);
 	}
 	else if (words[2] == "-k")
 	{
 		chan.setPassword("");
-		client->sendMessage("Password removed for channel " + chan.getName());
+		chan.sendAll(client, msg);
+		client->sendMessage(msg);
 	}
 }
 void CommandHandler::handleNick(Server& server, Client* client, const std::vector<std::string>& words) 

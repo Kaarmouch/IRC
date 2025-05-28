@@ -86,6 +86,21 @@ void Channel::setPassword(const std::string &pass)
 	password = pass;
 }
 
+void Channel::addInvite(const std::string& value)
+{
+	invitedNick.insert(value);
+}
+
+void Channel::removeInvite(const std::string& value) 
+{
+	invitedNick.erase(value);
+}
+
+bool Channel::isInvited(const std::string& value) 
+{
+    return invitedNick.find(value) != invitedNick.end();
+}
+
 int Channel::getOperatorCount() const 
 {
     int count = 0;
@@ -98,12 +113,13 @@ int Channel::getOperatorCount() const
 //-> Membres -----------------------------------------------------------------------------------------------------------------------------------
 bool Channel::addMember(Client* client, bool isOp) 
 {
-    if (members.find(client) != members.end())
-        return false;
-
-    members.insert(std::make_pair(client, isOp));
-    //members[client] = isOp;
-    return true;
+	if (members.find(client) != members.end())
+		return false;
+	if (inviteOnly && !isInvited(client->getNickn()))
+		return false;
+	members.insert(std::make_pair(client, isOp));
+	//members[client] = isOp;
+	return true;
 }
 bool Channel::removeMember(Client* client) 
 {

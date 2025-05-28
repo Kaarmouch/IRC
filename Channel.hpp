@@ -19,7 +19,7 @@ private:
     std::string name;                               // Nom du canal
     std::string topic;                              // Sujet du canal
     std::map<Client*, bool> members;                // Liste des membres (nom, est-opérateur ?)
-    std::set<Client*> invited;                      // Client invité
+    std::set<std::string> invitedNick;                      // Client invité
     bool inviteOnly;                                // +i -> [Channel sur invitation]
     bool topicRestricted;                           // +t -> operateur peuvent changer le topic
     std::string password;                           // +k -> Mot de pase channel
@@ -55,9 +55,9 @@ public:
 
     // Membres
     bool addMember(Client* client, bool isOperator = false);
-    bool removeMember(Client* client);                                 // retire un membre
-    bool isEmpty() const;                                              // return true si plus de membre dans un channel
-    bool isMember(Client* client) const;                               // Savoir si il est deja dans un channel
+    bool removeMember(Client* client);
+    bool isEmpty() const;    // true si plus de membre dans un channel
+    bool isMember(Client* client) const;   // True si deja dans un channel
     bool isOperator(Client* client) const;
     void sendAll(Client *cli, const std::string& msg);
     void sendList(Client *clin, const std::string& serverName);
@@ -65,7 +65,9 @@ public:
     
     bool promoteToOperator(Client* client);                 // +o
     bool demoteOperator(Client* client);                    // -o
-
+	void addInvite(const std::string& nick);
+	void removeInvite(const std::string& value);	// mode i
+	bool isInvited(const std::string& value);
 
     // Utilitaires
     int getMemberCount() const;
