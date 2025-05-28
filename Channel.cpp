@@ -2,15 +2,15 @@
 #include "Channel.hpp"
 
 // Constructeur par défaut + paramétré + copie + affectation + Destructeur 
-Channel::Channel() : name(""), topic(""), inviteOnly(false), password(""), maxUsers(50)
+Channel::Channel() : name(""), topic(""), inviteOnly(false), topicRestricted(false), password(""), maxUsers(50)
 {}
 Channel::Channel(const std::string& channelName, const std::string& channelPassword, int maxUsers)
-    : name(channelName), topic(""), inviteOnly(false), password(channelPassword), maxUsers(maxUsers)
+    : name(channelName), topic(""), inviteOnly(false), topicRestricted(false), password(channelPassword), maxUsers(maxUsers)
 {
 }
 Channel::Channel(const Channel& other)
     : name(other.name), topic(other.topic), members(other.members),
-      inviteOnly(other.inviteOnly), password(other.password), 
+      inviteOnly(other.inviteOnly),topicRestricted(other.topicRestricted), password(other.password), 
       maxUsers(other.maxUsers)
 {
 }
@@ -22,6 +22,7 @@ Channel& Channel::operator=(const Channel& other)
         topic = other.topic;
         members = other.members;
         inviteOnly = other.inviteOnly;
+	topicRestricted = other.topicRestricted;
         password = other.password;
         maxUsers = other.maxUsers;
     }
