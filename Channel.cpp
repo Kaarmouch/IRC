@@ -86,19 +86,19 @@ void Channel::setPassword(const std::string &pass)
 	password = pass;
 }
 
-void Channel::addInvite(const std::string& value)
+void Channel::addInvite(Client* c)
 {
-	invitedNick.insert(value);
+	invitedNick.insert(c);
 }
 
-void Channel::removeInvite(const std::string& value) 
+void Channel::removeInvite(Client* c) 
 {
-	invitedNick.erase(value);
+	invitedNick.erase(c);
 }
 
-bool Channel::isInvited(const std::string& value) 
+bool Channel::isInvited(Client* c) 
 {
-    return invitedNick.find(value) != invitedNick.end();
+    return invitedNick.find(c) != invitedNick.end();
 }
 
 int Channel::getOperatorCount() const 
@@ -115,7 +115,7 @@ bool Channel::addMember(Client* client, bool isOp)
 {
 	if (members.find(client) != members.end())
 		return false;
-	if (inviteOnly && !isInvited(client->getNickn()))
+	if (inviteOnly && !isInvited(client))
 		return false;
 	members.insert(std::make_pair(client, isOp));
 	//members[client] = isOp;

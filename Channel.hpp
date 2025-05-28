@@ -19,7 +19,7 @@ private:
     std::string name;                               // Nom du canal
     std::string topic;                              // Sujet du canal
     std::map<Client*, bool> members;                // Liste des membres (nom, est-opérateur ?)
-    std::set<std::string> invitedNick;                      // Client invité
+    std::set<Client*> invitedNick;                      // Client invité
     bool inviteOnly;                                // +i -> [Channel sur invitation]
     bool topicRestricted;                           // +t -> operateur peuvent changer le topic
     std::string password;                           // +k -> Mot de pase channel
@@ -65,9 +65,9 @@ public:
     
     bool promoteToOperator(Client* client);                 // +o
     bool demoteOperator(Client* client);                    // -o
-	void addInvite(const std::string& nick);
-	void removeInvite(const std::string& value);	// mode i
-	bool isInvited(const std::string& value);
+	void addInvite(Client* c);
+	void removeInvite(Client* c);	// mode i
+	bool isInvited(Client* c);
 
     // Utilitaires
     int getMemberCount() const;

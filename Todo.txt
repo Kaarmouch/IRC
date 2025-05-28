@@ -22,19 +22,18 @@ de référence.
 
 - TOPIC - Modifier 
 
-SOON OK :
-
 - KICK - Ejecter un client du channel
-
-NOT OK :
-
-- Limpression que quand le nick ou autre modifier, hexchat ne capte plus trop les mssg server
 
 - INVITE - Inviter un client au channel
 
 - MODE 
-	-i
-	-t
-	-k
-	-o
-	-l
+
+
+NOT OK :
+
+-verifier si les OK sont vraiment ok, j'ai pu oublier quelque chose, un situation particuliere
+
+
+- Quand le nick ou autre modifier, hexchat n'ouvre pas l'onglet pour la channel : perte d'info ? a trouver 
+
+- les message d'erreur ne sont paas fait mais quand ca fonctionne pas, ca fonctionne pas sans leak, juste pas de message (demander par le sujet ?)

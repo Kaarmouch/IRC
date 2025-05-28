@@ -27,6 +27,8 @@ void CommandHandler::execute(Server& server, Client* client, const std::string& 
 		handleJoin(server, client, words);
 	else if (command == "PART")
 		handlePart(server, client, words);
+	else if (command == "INVITE")
+		handleInvite(server, client, words);
 	else if (command == "TOPIC")
 		handleTopic(server, client, words);
 	else if (command == "HELP")
@@ -41,9 +43,32 @@ void CommandHandler::execute(Server& server, Client* client, const std::string& 
 		server.disconnectClient(client->getFd());
 	else if (command == "MODE")
 		handleMode(server, client, words);
-	else
+	else if (command != "WHO")
 		server.handleMessage(client, str);
 }
+
+void CommandHandler::handleInvite(Server& s, Client* c, std::vector<std::string>& w)
+{
+	if(!requireArgs(c, w, 3, "INVITE target_nickname #channel"))
+		return;
+	Channel *chan = c->getChanOn();
+        Client* target = s.findClientByNick(w[1]);
+	if (!chan || chan->getName() != w[2] || !target)
+        {
+                c->sendMessage(":localhost :Misspelling problem INVITE target_nickname #channel");
+                return;
+        }
+	if (!chan->getIOnly() || chan->isOperator(c))
+	{
+		if (!chan->isMember(target))
+		{
+			c->sendMessage(":localhost 341 "+c->getNickn()+" "+target->getNickn());
+			target->sendMessage(":"+c->getFullMask()+" INVITE "+target->getNickn()+" "+chan->getName());
+		}
+		chan->addInvite(target);
+	}
+}
+
 void CommandHandler::handleKick(Server& s,Client* client, std::vector<std::string>& words)
 {
 	if (!requireArgs(client, words, 3, "KICK #channel target_nickname"))
@@ -60,9 +85,10 @@ void CommandHandler::handleKick(Server& s,Client* client, std::vector<std::strin
 		target->setChanOn(NULL);
 		chan->removeMember(target);
 		std::string reason = getReason(words);
-		chan->sendAll(client, ":"+client->getFullMask()+" KICK "+chan->getName()+" "+words[2]+" :"+reason);
-		client->sendMessage(":"+client->getFullMask()+" KICK "+chan->getName()+" "+words[2]+" :"+reason);
-		target->sendMessage(":"+client->getFullMask()+" KICK "+chan->getName()+" "+words[2]+" :"+reason);
+		std::string msg = ":"+client->getFullMask()+" KICK "+chan->getName()+" "+words[2]+" :"+reason;
+		chan->sendAll(client, msg);
+		client->sendMessage(msg);
+		target->sendMessage(msg);
 		target->prompt();
 	}
 }

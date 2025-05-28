@@ -32,6 +32,7 @@ private:
     static void ModeKey(Channel& chan, const std::vector<std::string>& words, Client* client);
     static void handlePrivate(Server& server, Client* client, const std::vector<std::string>& words);
     static void handleKick(Server& s, Client* client, std::vector<std::string>& words);
+    static void handleInvite(Server& s, Client* c, std::vector<std::string>& w);
 };
 
 #endif
