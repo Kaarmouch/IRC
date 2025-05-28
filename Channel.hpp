@@ -72,9 +72,6 @@ public:
     // Utilitaires
     int getMemberCount() const;
     bool checkPassword(const std::string& inputPassword) const;
-    
-
-    void broadcast(const std::string& message, Client* exclude);
 };
 
 #endif

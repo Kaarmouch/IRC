@@ -216,13 +216,3 @@ std::map<Client*, bool> Channel::getMembers()
 {
     return this->members;
 }
-
-
-void Channel::broadcast(const std::string& message, Client* exclude)
-{
-	for (std::map<Client*, bool>::const_iterator it = members.begin(); it != members.end(); ++it)
-	{
-		if (it->first != exclude)
-			it->first->sendMessage(":" + message);
-	}
-}
