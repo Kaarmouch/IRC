@@ -395,12 +395,23 @@ void Server::setupTopic(Client* client, Channel& chan, const std::vector<std::st
 	for (size_t i = 2; i < args.size(); ++i) 
 	{
 		newTopic += args[i];
+		if (!newTopic.empty() && i == 2 && newTopic[0] == ':')
+		{
+			if (newTopic[1] && newTopic[1] != ':')
+				newTopic = newTopic.substr(1);
+			else
+			{
+				newTopic = "";
+				break;
+			}
+		}
 		if (i != args.size() - 1)
 			newTopic += " ";
 	}
 	chan.setTopic(newTopic);
-	std::string msg =":"+client->getFullMask() + " TOPIC " + channelName + newTopic;
+	std::string msg =":"+client->getFullMask()+" TOPIC "+channelName+" "+newTopic;
 	chan.sendAll(client, msg);
+	client->sendMessage(msg);
 
 }
 

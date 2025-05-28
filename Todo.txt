@@ -14,15 +14,20 @@ de référence.
 
 - Avoir des operators et des utilisateurs basiques.
 
-SOON OK :
+- JOIN
 
-- TOPIC - Modifier 
+- PART
 
 - TOPIC - afficher le thème du channel
 
-NOT OK :
+- TOPIC - Modifier 
+
+SOON OK :
 
 - KICK - Ejecter un client du channel
+
+NOT OK :
+
 
 - INVITE - Inviter un client au channel
 
