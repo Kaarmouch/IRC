@@ -283,17 +283,20 @@ void CommandHandler::ModeKey(Channel& chan, const std::vector<std::string>& word
 		client->sendMessage(msg);
 	}
 }
+
 void CommandHandler::handleNick(Server& server, Client* client, const std::vector<std::string>& words) 
 {
-    if (!requireArgs(client, words, 2, "NICK <nickname>"))
-        return;
-    std::string newNick = words[1];
-    if (server.isNickOk(client, newNick)) 
-    {
-	    std::string oldNick = ":"+ client->getFullMask();
-	    client->sendMessage(oldNick +" NICK : " + newNick);
-	    client->setNickname(newNick);
-    }
+	if (!requireArgs(client, words, 2, "NICK <nickname>"))
+		return;
+	std::string newNick = words[1];
+	if (server.isNickOk(client, newNick)) 
+	{
+		std::string oldNick = ":"+ client->getFullMask();
+		client->setNickname(newNick);
+		client->sendMessage(oldNick +" NICK :" + newNick);
+		if (client->getChanOn())
+			(client->getChanOn())->sendAll(client, oldNick+" NICK :"+newNick);
+	}
 }
 
 void CommandHandler::handleUser(Server& server, Client* client, const std::vector<std::string>& words) 
