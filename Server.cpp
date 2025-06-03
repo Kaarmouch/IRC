@@ -232,18 +232,16 @@ void Server::handleClientData(int index)
 				return;
 			}
 			cli->appendToBuffer(str);
-			//std::vector<std::string> messages = splitByCRLF(str);
 			std::vector<std::string> messages = cli->extractCompleteCommands();
 			for (size_t i = 0; i < messages.size(); i++)
 			{
-			std::cout << "Received from "<< cli->getNickn() << " : "<< messages[i] << std::endl;
+			std::cout << cli->getNickn() << " : "<< messages[i] << std::endl;
 				if (flag_out)
 					break;
 				std::string msg = messages[i];
 				if (!(cli->getPass()))
 				{
 					std::string pass = get_pass(msg);
-					std::cout << "pass " << "'" <<pass<< "'" << std::endl;
 					if (pass == password)
 					{
 						cli->sendMessage("You are now authentificated");
@@ -269,7 +267,6 @@ void Server::handleClientData(int index)
 
 void Server::Join_Command(Client* client, const std::string& channelName, const std::string& password)
 {
-	(void)password;
 	std::string serverName = "localhost"; // Nom logique du serveur
 	std::map<std::string, Channel>::iterator it = channels.find(channelName);
 	std::string prompt = client->getNickn() + " joined : " + channelName;
@@ -292,6 +289,11 @@ void Server::Join_Command(Client* client, const std::string& channelName, const 
 		std::pair<std::map<std::string, Channel>::iterator, bool> result =
 			channels.insert(std::make_pair(channelName, Channel(channelName)));
 		channel = &result.first->second;
+		if (password != "")
+		{
+			channel->setPassword(password);
+			client->sendMessage(":"+client->getFullMask()+" MODE "+channelName +" "+password);
+		}
 		channel->addMember(client, true);
 		std::cout << client->getNickn() << " created and joined channel " << channelName << std::endl;
 	}

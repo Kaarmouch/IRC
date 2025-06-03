@@ -22,36 +22,11 @@ std::string get_pass(const std::string& input)
 	return vec[0];
 }
 
-
 std::string str_toupper(std::string str)
 {
 	for (std::string::size_type i = 0; i < str.size(); ++i)
 		str[i] = std::toupper(static_cast<unsigned char>(str[i]));
 	return str;
-}
-
-std::vector<std::string> splitByCRLF(const std::string& input)
-{
-	std::vector<std::string> result;
-	size_t start = 0, end;
-
-	while ((end = input.find("\r\n", start)) != std::string::npos) 
-	{
-		std::string part = input.substr(start, end - start);
-		part = trim(part);
-		if (!part.empty())
-		{
-			result.push_back(part);
-		}
-		start = end + 2; // skip over "\r\n"
-	}
-	if (start < input.length()) 
-	{
-		std::string part = trim(input.substr(start));
-		if (!part.empty())
-			result.push_back(part);
-	}
-	return result;
 }
 
 std::string getReason(const std::vector<std::string>& words)
