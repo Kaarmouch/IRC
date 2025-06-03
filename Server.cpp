@@ -54,8 +54,8 @@ void Server::initializeServer()
 		return;
 	}
 	// Rendre le socket non-bloquant
-	int flags = fcntl(server_fd, F_GETFL, O_NONBLOCK);
-	if (flags == -1 || fcntl(server_fd, F_SETFL, flags | O_NONBLOCK) == -1) {
+	int flags = fcntl(server_fd, F_SETFL, O_NONBLOCK);
+	if (flags == -1) {
 		perror("fcntl");
 		close(server_fd);
 		return;
@@ -225,16 +225,18 @@ void Server::handleClientData(int index)
 		{
 			Client * cli = *it;
 			str = cli->readMessage();
-			std::cout << "Received from "<< cli->getNickn() << " " <<cli->getPass() << " : "<< str;
 			if (str == "")
 			{
 				std::cout << "empty prompt" << std::endl;
 				disconnectClient(fd);
 				return;
 			}
-			std::vector<std::string> messages = splitByCRLF(str);
+			cli->appendToBuffer(str);
+			//std::vector<std::string> messages = splitByCRLF(str);
+			std::vector<std::string> messages = cli->extractCompleteCommands();
 			for (size_t i = 0; i < messages.size(); i++)
 			{
+			std::cout << "Received from "<< cli->getNickn() << " : "<< messages[i] << std::endl;
 				if (flag_out)
 					break;
 				std::string msg = messages[i];

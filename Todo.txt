@@ -7,7 +7,7 @@ OK :
 
 - Pouvoir vous authentifier, définir un nickname, un username, re-
 joindre un channel, envoyer et recevoir des messages privés, avec votre client
-de référence.
+de référence. 
 
 - Tous les messages envoyés par un client dans un channel doivent être transmis
 à tous les clients ayant rejoint ce channel.
@@ -32,8 +32,5 @@ de référence.
 NOT OK :
 
 -verifier si les OK sont vraiment ok, j'ai pu oublier quelque chose, un situation particuliere
-
-
-- Quand le nick ou autre modifier, hexchat n'ouvre pas l'onglet pour la channel : perte d'info ? a trouver 
 
 - les message d'erreur ne sont paas fait mais quand ca fonctionne pas, ca fonctionne pas sans leak, juste pas de message (demander par le sujet ?)

@@ -1,6 +1,6 @@
 #include "Client.hpp"
 
-Client::Client() : fd(0), realname(""), username(""), nickname(""), authentificated(0), chanOn(NULL) {}
+Client::Client() : fd(0), realname(""), username(""), nickname(""), _buff(""), authentificated(0), chanOn(NULL) {}
 
 Client::Client(const Client &copy) : fd(copy.fd), realname(copy.realname), username(copy.username), nickname(copy.nickname), authentificated(copy.authentificated), chanOn(copy.chanOn) {}
 
@@ -52,6 +52,23 @@ std::string Client::getNickn() const {return nickname;}
 Channel* Client::getChanOn() const { return chanOn; }
 bool Client::getPass() const {return authentificated;}
 std::string Client::getFullMask() const {return getNickn() + "!" + getUsern() + "@" + getRealn();}
+void Client::appendToBuffer(const std::string& data) { _buff += data; }
+
+std::vector<std::string> Client::extractCompleteCommands() 
+{
+	std::vector<std::string> commands;
+	size_t pos;
+
+	while ((pos = _buff.find('\n')) != std::string::npos) {
+		std::string cmd = _buff.substr(0, pos);
+		_buff.erase(0, pos + 1); // +1 pour enlever le '\n'
+		// Nettoyage optionnel du '\r' s'il précède le '\n'
+		if (!cmd.empty() && cmd[cmd.size() - 1] == '\r')
+			cmd.erase(cmd.size() - 1);
+		commands.push_back(cmd);
+	}
+	return commands;
+}
 
 
 std::string Client::readMessage() 

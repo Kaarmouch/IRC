@@ -14,7 +14,7 @@ class Channel;
 class Client {
 	private:
 		int fd; 
-		std::string realname, username, nickname; // nickname -> unique
+		std::string realname, username, nickname, _buff; // nickname -> unique
 		bool authentificated;
 		Channel* chanOn;
 		std::vector<std::string> channels;
@@ -37,6 +37,9 @@ class Client {
 		
 		std::string readMessage();     // Lire le message envoyé par le client
 		void sendMessage(const std::string& message);  // Envoyer un message au client
+		void appendToBuffer(const std::string& data);
+		std::vector<std::string> extractCompleteCommands();
+
 		void prompt(void);
 		void setIpAdd(const std::string& addr);
 		void setChanOn(Channel* chan);
