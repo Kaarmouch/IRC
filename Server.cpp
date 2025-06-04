@@ -203,9 +203,7 @@ void Server::handleMessage(Client* cli,const std::string& msg)
 	Channel* chanOn = cli->getChanOn();
 
 	if (!chanOn)
-	{
 		cli->sendMessage("You have no channel, please JOIN #channel");
-	}
 	else
 	{
 		std::string m = ":" + cli->getFullMask() + " PRIVMSG " + chanOn->getName() +" "+ msg;
@@ -267,7 +265,7 @@ void Server::handleClientData(int index)
 
 void Server::Join_Command(Client* client, const std::string& channelName, const std::string& password)
 {
-	std::string serverName = "localhost"; // Nom logique du serveur
+	std::string serverName = "localhost";
 	std::map<std::string, Channel>::iterator it = channels.find(channelName);
 	std::string prompt = client->getNickn() + " joined : " + channelName;
 
@@ -288,6 +286,7 @@ void Server::Join_Command(Client* client, const std::string& channelName, const 
 	{
 		std::pair<std::map<std::string, Channel>::iterator, bool> result =
 			channels.insert(std::make_pair(channelName, Channel(channelName)));
+			
 		channel = &result.first->second;
 		if (password != "")
 		{
@@ -302,7 +301,7 @@ void Server::Join_Command(Client* client, const std::string& channelName, const 
 		channel = &it->second;
 		if (!channel->checkPassword(password))
 		{
-			std::cout << "wrong pass tried by "+client->getNickn()+" "+password<<std::cout;
+			std::cout << "wrong pass tried by "+client->getNickn() + " " + password << std::endl;
 			return;
 		}
 		if (!channel->addMember(client))

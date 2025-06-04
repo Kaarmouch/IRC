@@ -1,5 +1,4 @@
 #include "CommandHandler.hpp"
-#include "utils.hpp"
 
 static bool requireArgs(Client* client, const std::vector<std::string>& words, size_t min, const std::string& usage) 
 {
@@ -132,7 +131,6 @@ void CommandHandler::handleMode(Server& server, Client* client, const std::vecto
 	const std::string& channelName = words[1];
 	std::map<std::string, Channel>& chans = server.getChannels();
 	std::map<std::string, Channel>::iterator it = chans.find(channelName);
-    //cherche le channel
 	if (it == chans.end())
 	{
 		client->sendMessage("No such channel");
@@ -144,7 +142,6 @@ void CommandHandler::handleMode(Server& server, Client* client, const std::vecto
 		client->sendMessage("You're not channel operator");
 		return;
 	}
-    // Si Aucun mode précisé
 	if (words.size() == 2)
 	{
 		client->sendMessage("Channel modes: [not implemented yet]");
@@ -165,7 +162,6 @@ void CommandHandler::handleMode(Server& server, Client* client, const std::vecto
 		ModeLimit(chan, words, client);
 	else
 		client->sendMessage("Unknown mode: " + mode);
-        // AJOUTER -> Message help des commande mode dispognible [+o/-o] [+t/-t] etc....
 }
 
 void CommandHandler::ModeLimit(Channel& chan, const std::vector<std::string>& word, Client* client)
@@ -198,7 +194,6 @@ void CommandHandler::ModeLimit(Channel& chan, const std::vector<std::string>& wo
 
 void CommandHandler::ModeInvite(Channel& chan, const std::string& mode, Client* client)
 {
-
 	std::string msg = ":"+client->getFullMask()+" MODE "+chan.getName() + " "+mode;
         if (mode == "+i")
                 chan.setIOnly(true);
@@ -223,7 +218,8 @@ void CommandHandler::ModeOperator(Server& server, Client* client, Channel& chan,
 		client->sendMessage("User not in channel");
 		return;
 	}
-	std::string msg = ":"+client->getFullMask()+" MODE "+chan.getName()+" "+words[2]+" "+target->getNickn() ;
+	std::string msg = ":"+client->getFullMask()+" MODE "+chan.getName()+" "+words[2]+" "+target->getNickn();
+
 	if (words[2] == "+o")
 	{
 		if (!chan.isOperator(target))
@@ -235,7 +231,7 @@ void CommandHandler::ModeOperator(Server& server, Client* client, Channel& chan,
 		else
 			client->sendMessage(Nick + " is already an operator.");
 	}
-	else // "-o"
+	else 
 	{
 		if (chan.isOperator(target))
 		{
@@ -314,7 +310,6 @@ void CommandHandler::handleJoin(Server& server, Client* client, const std::vecto
     if (!requireArgs(client, words, 2, "JOIN <#channel>"))
         return;
 
-	// Vérifie si mot de passe fourni en 3eme argument
     std::string password = (words.size() >= 3) ? words[2] : "";
     server.Join_Command(client, words[1], password);
 }

@@ -59,10 +59,10 @@ std::vector<std::string> Client::extractCompleteCommands()
 	std::vector<std::string> commands;
 	size_t pos;
 
-	while ((pos = _buff.find('\n')) != std::string::npos) {
+	while ((pos = _buff.find('\n')) != std::string::npos) 
+	{
 		std::string cmd = _buff.substr(0, pos);
-		_buff.erase(0, pos + 1); // +1 pour enlever le '\n'
-		// Nettoyage optionnel du '\r' s'il précède le '\n'
+		_buff.erase(0, pos + 1); 				// +1 pour enlever le '\n'
 		if (!cmd.empty() && cmd[cmd.size() - 1] == '\r')
 			cmd.erase(cmd.size() - 1);
 		commands.push_back(cmd);
@@ -70,21 +70,19 @@ std::vector<std::string> Client::extractCompleteCommands()
 	return commands;
 }
 
-
 std::string Client::readMessage() 
 {
 	char buffer[1024];
 	std::string msg;
 	ssize_t bytes = recv(fd, buffer, sizeof(buffer) - 1, 0);
 
-	if (bytes <= 0) {
+	if (bytes <= 0) 
+	{
 		std::cerr << "Client disconnected: " << fd << std::endl;
 		return "";
 	}
-
 	buffer[bytes] = '\0';
 	msg = buffer;
-	
 	return msg;
 }
 void Client::sendMessage(const std::string& message) 
@@ -139,7 +137,6 @@ void Client::setChanOn(Channel* chan)
 {
 	this->chanOn = chan;
 }
-
 void Client::setNickname(const std::string& nickname)
 {
 	this->nickname = nickname;
@@ -148,23 +145,3 @@ void Client::setUsername(const std::string& username)
 {
 	this->username = username;
 }
-
-
-
-/*
-void Client::joinChannel(std::string channelName)
-{
-	this->channels.push_back(channelName);
-}
-
-ivoid Client::leaveChannel(std::string channelName)
-{
-	for (std::vecotr<std::string>::iterator i_name = channels.begin(); i_name != channels.end(); i_name++)
-	{
-		if (i_name = channelName)
-		{
-			channel.erase(i_name);
-			break;
-		}
-	}
-}*/

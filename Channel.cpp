@@ -117,8 +117,11 @@ bool Channel::addMember(Client* client, bool isOp)
 		return false;
 	if (inviteOnly && !isInvited(client))
 		return false;
+    if (maxUsers != -1 && ((this->getMemberCount() + 1 ) <= maxUsers))
+    {
+        return false;
+    }
 	members.insert(std::make_pair(client, isOp));
-	//members[client] = isOp;
 	return true;
 }
 bool Channel::removeMember(Client* client) 
@@ -209,7 +212,7 @@ bool Channel::checkPassword(const std::string& inputPassword) const
 }
 int Channel::getMemberCount() const
 {
-    // Utilise size() dans <map> pour retourner le nombre de membre
+    // Utilise size() dans <map> 
     return members.size();
 }
 std::map<Client*, bool> Channel::getMembers()

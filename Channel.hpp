@@ -19,20 +19,15 @@ private:
     std::string name;                               // Nom du canal
     std::string topic;                              // Sujet du canal
     std::map<Client*, bool> members;                // Liste des membres (nom, est-opérateur ?)
-    std::set<Client*> invitedNick;                      // Client invité
+    std::set<Client*> invitedNick;                  // Client invité
     bool inviteOnly;                                // +i -> [Channel sur invitation]
     bool topicRestricted;                           // +t -> operateur peuvent changer le topic
     std::string password;                           // +k -> Mot de pase channel
-    //bool hasPassword;                               // Pour vérifier si une clé est définie
     int maxUsers;                                   // Mode +l : Limite d'utilisateurs
-    bool limitSet;		// si limitSet est la pour savoir si le mode +l est mis, on peut juste inititer maxUsers a -1 et consciderer ca comme non set, same pour pasword ?
-
-    
-
 
 public:
     Channel();
-    Channel(const std::string& channelName, const std::string& channelPassword = "", int maxUsers = 50); // genre initier maxUser a -1
+    Channel(const std::string& channelName, const std::string& channelPassword = "", int maxUsers = 50);
     Channel(const Channel& other);
     Channel& operator=(const Channel& other);
     ~Channel();
@@ -46,6 +41,7 @@ public:
     bool getRTopic() const;
     int getMaxUsers() const;
     int getOperatorCount() const;
+
     // Setters
     void setTopic(const std::string& newTopic);
     void setIOnly(const bool mode);
@@ -56,17 +52,17 @@ public:
     // Membres
     bool addMember(Client* client, bool isOperator = false);
     bool removeMember(Client* client);
-    bool isEmpty() const;    // true si plus de membre dans un channel
-    bool isMember(Client* client) const;   // True si deja dans un channel
+    bool isEmpty() const;                                   // true si plus de membre dans un channel
+    bool isMember(Client* client) const;                    // True si deja dans un channel
     bool isOperator(Client* client) const;
     void sendAll(Client *cli, const std::string& msg);
     void sendList(Client *clin, const std::string& serverName);
-    // Modes
     
-    bool promoteToOperator(Client* client);                 // +o
-    bool demoteOperator(Client* client);                    // -o
+    // Modes
+    bool promoteToOperator(Client* client);
+    bool demoteOperator(Client* client);
 	void addInvite(Client* c);
-	void removeInvite(Client* c);	// mode i
+	void removeInvite(Client* c);
 	bool isInvited(Client* c);
 
     // Utilitaires
