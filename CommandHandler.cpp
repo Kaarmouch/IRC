@@ -72,8 +72,10 @@ void CommandHandler::handleKick(Server& s,Client* client, std::vector<std::strin
 {
 	if (!requireArgs(client, words, 3, "KICK #channel target_nickname"))
 		return;
+
 	Channel *chan = client->getChanOn();
 	Client* target = s.findClientByNick(words[2]);
+
 	if (!chan || chan->getName() != words[1] || !target)
 	{
 		client->sendMessage(":localhost :Misspelling problem");
@@ -99,7 +101,9 @@ void CommandHandler::handlePrivate(Server& server, Client* client, const std::ve
 		 client->sendMessage("Nothing to send");
 		 return;
 	 }
+
 	 std::string message = ":" + client->getFullMask() ;
+
 	 for (size_t i = 0; i < words.size(); ++i)
 	 {
 		 message += " ";
@@ -131,11 +135,13 @@ void CommandHandler::handleMode(Server& server, Client* client, const std::vecto
 	const std::string& channelName = words[1];
 	std::map<std::string, Channel>& chans = server.getChannels();
 	std::map<std::string, Channel>::iterator it = chans.find(channelName);
+
 	if (it == chans.end())
 	{
 		client->sendMessage("No such channel");
 		return;
 	}
+
 	Channel& chan = it->second;
 	if (!chan.isOperator(client))
 	{
@@ -191,7 +197,6 @@ void CommandHandler::ModeLimit(Channel& chan, const std::vector<std::string>& wo
 	}
 }
 
-
 void CommandHandler::ModeInvite(Channel& chan, const std::string& mode, Client* client)
 {
 	std::string msg = ":"+client->getFullMask()+" MODE "+chan.getName() + " "+mode;
@@ -203,7 +208,6 @@ void CommandHandler::ModeInvite(Channel& chan, const std::string& mode, Client* 
 	client->sendMessage(msg);
 }
 
-
 void CommandHandler::ModeOperator(Server& server, Client* client, Channel& chan, const std::vector<std::string>& words)
 {
 	if (words.size() < 4)
@@ -211,13 +215,16 @@ void CommandHandler::ModeOperator(Server& server, Client* client, Channel& chan,
 		client->sendMessage("Usage: MODE <channel> [+o/-o] <nickname>");
 		return;
 	}
+
 	const std::string& Nick = words[3];
 	Client* target = server.findClientByNick(Nick);
+
 	if (!target || !chan.isMember(target))
 	{
 		client->sendMessage("User not in channel");
 		return;
 	}
+
 	std::string msg = ":"+client->getFullMask()+" MODE "+chan.getName()+" "+words[2]+" "+target->getNickn();
 
 	if (words[2] == "+o")
@@ -266,7 +273,6 @@ void CommandHandler::ModeKey(Channel& chan, const std::vector<std::string>& word
 			client->sendMessage("Usage: MODE <channel> +k <password>");
 			return;
 		}
-
 		chan.setPassword(words[3]);
 		msg +=  " "+words[3];
 		chan.sendAll(client, msg);
@@ -345,4 +351,3 @@ void CommandHandler::handleHelp(Client* client)
 
     client->sendMessage(help);
 }
-

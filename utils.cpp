@@ -10,7 +10,6 @@ std::vector<std::string> splitOnSpace(const std::string& input)
 	while (stream >> word) {
         tokens.push_back(word);
 	}
-
 	return tokens;
 }
 
@@ -133,5 +132,3 @@ bool canPartChannel(Client* client, const std::string& requestedChan)
     }
     return true;
 }
-
-

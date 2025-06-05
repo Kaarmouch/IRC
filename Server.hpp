@@ -2,6 +2,7 @@
 #include "utils.hpp"
 #include "Channel.hpp"
 #include "CommandHandler.hpp"
+#include "Client.hpp"
 
 #include <vector>
 #include <poll.h>
@@ -13,7 +14,6 @@
 #include <unistd.h>
 #include <iostream>
 #include <cstring>
-#include "Client.hpp"
 #include <cstdio>
 #include <algorithm>
 #include <list>
@@ -57,5 +57,4 @@ class Server
 		void setupTopic(Client* client, Channel& chan, const std::vector<std::string>& args, const std::string& channelName);
 
 		bool isNickOk(Client* cli, std::string& nick);
-
 };

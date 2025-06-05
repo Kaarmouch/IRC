@@ -197,7 +197,6 @@ bool Server::isNickOk(Client* cli, std::string& str)
 	return 1;
 }
 
-
 void Server::handleMessage(Client* cli,const std::string& msg)
 {	
 	Channel* chanOn = cli->getChanOn();
@@ -261,7 +260,6 @@ void Server::handleClientData(int index)
 		}
 	}
 }
-
 
 void Server::Join_Command(Client* client, const std::string& channelName, const std::string& password)
 {
@@ -420,7 +418,6 @@ void Server::setupTopic(Client* client, Channel& chan, const std::vector<std::st
 	std::string msg =":"+client->getFullMask()+" TOPIC "+channelName+" "+newTopic;
 	chan.sendAll(client, msg);
 	client->sendMessage(msg);
-
 }
 
 std::map<std::string, Channel>& Server::getChannels()

@@ -1,19 +1,15 @@
-//Channel.cpp
 #include "Channel.hpp"
 
-// Constructeur par défaut + paramétré + copie + affectation + Destructeur 
-Channel::Channel() : name(""), topic(""), inviteOnly(false), topicRestricted(false), password(""), maxUsers(50)
-{}
+Channel::Channel() : name(""), topic(""), inviteOnly(false), topicRestricted(false), password(""), maxUsers(50) {}
+
 Channel::Channel(const std::string& channelName, const std::string& channelPassword, int maxUsers)
-    : name(channelName), topic(""), inviteOnly(false), topicRestricted(false), password(channelPassword), maxUsers(maxUsers)
-{
-}
+    : name(channelName), topic(""), inviteOnly(false), topicRestricted(false), password(channelPassword), maxUsers(maxUsers) {}
+
 Channel::Channel(const Channel& other)
     : name(other.name), topic(other.topic), members(other.members),
       inviteOnly(other.inviteOnly),topicRestricted(other.topicRestricted), password(other.password), 
-      maxUsers(other.maxUsers)
-{
-}
+      maxUsers(other.maxUsers) {}
+
 Channel& Channel::operator=(const Channel& other)
 {
     if (this != &other) 
@@ -28,19 +24,20 @@ Channel& Channel::operator=(const Channel& other)
     }
     return *this;
 }
-Channel::~Channel()
-{
-}
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Channel::~Channel() {}
+
 //-> Getters et setters --------------------------------------------------------------------------------------------------------------------------
 std::string Channel::getName() const
 {
     return name;
 }
+
 std::string Channel::getTopic() const
 {
     return topic;
 }
+
 bool Channel::getIOnly() const
 {
 	return inviteOnly;
@@ -110,6 +107,7 @@ int Channel::getOperatorCount() const
     }
     return count;
 }
+
 //-> Membres -----------------------------------------------------------------------------------------------------------------------------------
 bool Channel::addMember(Client* client, bool isOp) 
 {
@@ -128,18 +126,22 @@ bool Channel::addMember(Client* client, bool isOp)
 	members.insert(std::make_pair(client, isOp));
 	return true;
 }
+
 bool Channel::removeMember(Client* client) 
 {
     return members.erase(client) > 0;
 }
+
 bool Channel::isEmpty() const 
 {
     return members.empty();
 }
+
 bool Channel::isMember(Client* client) const 
 {
     return members.find(client) != members.end();
 }
+
 bool Channel::isOperator(Client* client) const 
 {
     std::map<Client*, bool>::const_iterator it = members.find(client);
@@ -165,8 +167,6 @@ void Channel::sendList(Client *clin, const std::string& serverName)
 	clin->sendMessage(":" + serverName + " 366 " + clin->getNickn() + " " + this->name + " :End of /NAMES list.");
 }
 
-
-
 void	Channel::sendAll(Client *cli,const std::string& msg)
 {
 	std::string name = cli->getNickn();
@@ -177,7 +177,6 @@ void	Channel::sendAll(Client *cli,const std::string& msg)
 			((it->first))->sendMessage(msg);
 			((it->first))->prompt();
 		}
-
 	}
 }
 
@@ -203,22 +202,17 @@ bool Channel::demoteOperator(Client* client)
     return false;
 }
 
-
-
-//-> Command -------------------------------------------------------------------------------------------------------------------------------
-
-
-
 //-> Utilitaires -------------------------------------------------------------------------------------------------------------------------------
 bool Channel::checkPassword(const std::string& inputPassword) const
 {
     return inputPassword == password;
 }
+
 int Channel::getMemberCount() const
 {
-    // Utilise size() dans <map> 
     return members.size();
 }
+
 std::map<Client*, bool> Channel::getMembers()
 {
     return this->members;

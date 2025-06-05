@@ -16,9 +16,7 @@ int	IsValidPort(const char *portStr);
 std::vector<std::string> splitOnSpace(const std::string& input);
 bool isPositiveInt(const std::string& str, int& result);
 
-
-
-//Verif Channel
+//Verif Channel + orther
 std::string getReason(const std::vector<std::string>& words);
 bool isValidChannelName(const std::string& name);
 bool isClientFree(Client* client);

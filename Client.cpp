@@ -45,7 +45,6 @@ int Client::getFd() const
                 return -1;
 }
 
-
 std::string Client::getRealn() const {return realname;}
 std::string Client::getUsern() const {return username;}
 std::string Client::getNickn() const {return nickname;}
@@ -85,6 +84,7 @@ std::string Client::readMessage()
 	msg = buffer;
 	return msg;
 }
+
 void Client::sendMessage(const std::string& message) 
 {
 	std::string formatted = message;
@@ -105,7 +105,6 @@ void Client::prompt(void)
 		if (!chanOn->getTopic().empty())
 			p += "-[" + chanOn->getTopic() + "]";
 
-		//Ajout du nombre d'opérateurs et de membres
 		int opCount = chanOn->getOperatorCount();
 		int memberCount = chanOn->getMemberCount();
 
@@ -119,7 +118,6 @@ void Client::prompt(void)
 	}
 
 	sendMessage(p);
-
 	if (!getPass())
 		sendMessage("Password :");
 }
@@ -129,18 +127,22 @@ void Client::setIpAdd(const std::string& ipAddr)
 	realname = ipAddr;
 	std::cout << "address set to " << realname << std::endl;
 }
+
 void Client::setPass(void)
 {
 	authentificated = 1;
 }
+
 void Client::setChanOn(Channel* chan) 
 {
 	this->chanOn = chan;
 }
+
 void Client::setNickname(const std::string& nickname)
 {
 	this->nickname = nickname;
 }
+
 void Client::setUsername(const std::string& username)
 {
 	this->username = username;
