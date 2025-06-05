@@ -115,12 +115,16 @@ bool Channel::addMember(Client* client, bool isOp)
 {
 	if (members.find(client) != members.end())
 		return false;
+
 	if (inviteOnly && !isInvited(client))
 		return false;
-    if (maxUsers != -1 && ((this->getMemberCount() + 1 ) <= maxUsers))
+
+    if (maxUsers > 0 && (int)members.size() >= maxUsers)
     {
+        client->sendMessage("Channel is full");
         return false;
     }
+
 	members.insert(std::make_pair(client, isOp));
 	return true;
 }
